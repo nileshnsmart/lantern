@@ -193,6 +193,18 @@ def sources_of(resp):
     return out[:6]
 
 
+def gen(**kw):
+    """Call the model, waiting and retrying when Google is briefly busy (429 / 503)."""
+    for wait_s in (2, 5, 10, 0):
+        try:
+            return text_client.models.generate_content(**kw)
+        except Exception as e:
+            busy = any(k in str(e) for k in ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE"))
+            if not busy or not wait_s:
+                raise
+            time.sleep(wait_s)
+
+
 FAST_THINKING = os.environ.get("FAST_THINKING", "low")
 
 
@@ -201,11 +213,11 @@ def ask_text(parts, temperature=0.4, search=False, fast=False, kind="text"):
     cfg = dict(temperature=temperature, tools=[SEARCH] if search else None)
     if fast and FAST_THINKING:
         try:
-            return text_client.models.generate_content(model=TEXT_MODEL, contents=parts, config=types.GenerateContentConfig(
+            return gen(model=TEXT_MODEL, contents=parts, config=types.GenerateContentConfig(
                 **cfg, thinking_config=types.ThinkingConfig(thinking_level=FAST_THINKING)))
         except Exception:
             pass
-    return text_client.models.generate_content(model=TEXT_MODEL, contents=parts, config=types.GenerateContentConfig(**cfg))
+    return gen(model=TEXT_MODEL, contents=parts, config=types.GenerateContentConfig(**cfg))
 
 
 # ---------- 1 + 2. capture, research and interview ----------
@@ -521,7 +533,7 @@ def make_image(parts, wide=False):
                                               image_config=types.ImageConfig(aspect_ratio="16:9"))
         except Exception:
             pass
-    return first_image(text_client.models.generate_content(model=IMAGE_MODEL, contents=parts, config=cfg))
+    return first_image(gen(model=IMAGE_MODEL, contents=parts, config=cfg))
 
 
 @app.post("/api/restore")
@@ -719,7 +731,7 @@ def tts_pcm(text: str, language: str = "auto", tone: str = "warm", voice: str | 
     last = None
     for model in TTS_MODELS:
         try:
-            resp = text_client.models.generate_content(
+            resp = gen(
                 model=model, contents=f"{style}: {text}",
                 config=types.GenerateContentConfig(response_modalities=["AUDIO"], speech_config=speech))
             data = resp.candidates[0].content.parts[0].inline_data.data
@@ -767,7 +779,11 @@ async def http_error(_, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def any_error(_, exc: Exception):
-    return JSONResponse(status_code=500, content={"error": f"{type(exc).__name__}: {exc}"[:500]})
+    msg = str(exc)
+    if any(k in msg for k in ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")):
+        return JSONResponse(status_code=503, content={"error": "Lantern is very busy right now. Please wait a few seconds and try again."})
+    print("error:", type(exc).__name__, msg[:800], flush=True)
+    return JSONResponse(status_code=500, content={"error": "Something went wrong. Please try again."})
 
 
 @app.get("/")

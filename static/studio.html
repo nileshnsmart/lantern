@@ -471,6 +471,7 @@ async function makeBook(){
     p(2).className = "on"; const pages = [];
     await Promise.all((plan.scenes || []).slice(0, 3).map(async (sc, i) => { try { pages[i] = {img: (await api("/api/illustrate", {json: {prompt: sc.prompt, photos: S.photos.slice(0, 3)}})).image, caption: sc.caption}; } catch(e) {} }));
     const got = pages.filter(Boolean); p(2).className = got.length ? "done" : "fail";
+    if (!cover && got.length) cover = got.shift().img;
     S.book = {cover, pages: got}; saveStory(); renderResult("book"); go("result");
   } catch(e){ $("#makeErr").hidden = false; $("#makeErr").textContent = e.message; $("#makeChoices").hidden = false; $("#prog").hidden = true; }
   $("#makeGo").disabled = false;

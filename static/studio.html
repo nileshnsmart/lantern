@@ -215,8 +215,9 @@ function translateLive(text, els = liveEls){
 function showFinal(els, r, text){
   const o = (r && r.transcript_original) || text; if (!o || !els) return;
   els.p.textContent = o;
-  if (trTarget() === "English" && r && r.transcript_english && r.transcript_english !== o){ els.tr.hidden = false; els.tr.textContent = r.transcript_english; }
-  else if (!els.tr.textContent) translateLive(o, els);
+  if (trTarget() === "English" && r && r.transcript_english && r.transcript_english !== o){ trQueue = trQueue.then(() => { els.tr.hidden = false; els.tr.textContent = r.transcript_english; }); }
+  else if (r && trTarget().toLowerCase() === String(r.language || "").toLowerCase()){ els.tr.hidden = true; }
+  else { trQueue = trQueue.then(() => { els.tr.textContent = ""; }); translateLive(o, els); }
 }
 $("#trTarget").onchange = () => { const els = {p: $("#transcriptText"), tr: $("#transcriptTr")}; els.tr.textContent = "";
   const t = els.p.textContent; if (t && !/appear here|Listening/.test(t)) translateLive(t, els); };
@@ -271,7 +272,7 @@ async function sendTurn({audio = null, typed = "", skipped = false} = {}){
   if (audio) fd.append("audio", audio, "answer." + (audio.type.includes("mp4") ? "mp4" : "webm"));
   if (typed) fd.append("answer_text", typed);
   const r = await api("/api/turn", {method: "POST", body: fd});
-  if (r.language) S.lang = r.language;
+  if (r.language){ const was = S.lang; S.lang = r.language; if (S.langPick === "auto" && was !== S.lang && trTarget().toLowerCase() === S.lang.toLowerCase()) setTargets(); }
   const q = S.mode === "lantern" ? pendingQ : {};
   if (skipped) S.history.push({question_original: q.o || "", question_english: q.e || "", answer_original: "(skipped)", answer_english: "(skipped)"});
   if (audio || typed) S.history.push({question_original: q.o || "", question_english: q.e || "", answer_original: r.transcript_original || typed, answer_english: r.transcript_english || ""});
@@ -519,10 +520,11 @@ function bookHTML(book, story){
 }
 const safeName = t => (t || "story").replace(/[^\w\- ]+/g, "").trim() || "story";
 let pdfLib = null;
-function loadPdfLib(){ return pdfLib || (pdfLib = new Promise((res, rej) => { const s = document.createElement("script");
-  s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-  s.onload = () => res(window.html2pdf); s.onerror = () => { pdfLib = null; rej(new Error("Couldn't load the PDF maker. Check the internet connection.")); };
-  document.head.appendChild(s); })); }
+const PDF_SRC = ["/vendor/html2pdf.bundle.min.js", "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"];
+function addScript(src){ return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+function loadPdfLib(){ return pdfLib || (pdfLib = (async () => {
+  for (const src of PDF_SRC){ try { await addScript(src); if (window.html2pdf) return window.html2pdf; } catch(e) {} }
+  pdfLib = null; throw new Error("Couldn't prepare the PDF. Check the internet connection and try again."); })()); }
 async function makePdf(book, story){
   const lib = await loadPdfLib(); const root = $("#pdfRoot");
   root.innerHTML = `<div>${bookHTML(book, story)}<p style="font-size:12px;color:#868784;margin-top:12px">Made with Lantern · ${new Date().toLocaleDateString()}</p></div>`;

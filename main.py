@@ -21,6 +21,7 @@ Cost guard: every paid call is counted and capped per running instance (see LIMI
 with max-instances=1, so a public link can't run up a large bill.
 """
 import base64
+import contextvars
 import hashlib
 import io
 import json
@@ -31,7 +32,7 @@ import time
 import uuid
 import wave
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from google import genai
@@ -48,8 +49,16 @@ VEO_AUDIO = os.environ.get("VEO_AUDIO", "0") == "1"          # natural sound fro
 DATA_BUCKET = os.environ.get("DATA_BUCKET", "")              # where the credit meter is kept
 CREDIT_START = float(os.environ.get("CREDIT_START", "28707"))
 
+# Session credits ("tokens"): every visitor session gets SESSION_TOKENS; 1 token is about INR 0.10.
+SESSION_TOKENS = int(os.environ.get("SESSION_TOKENS", "10000"))
+COST_TOKENS = {"text": 10, "search": 40, "translate": 1, "image": 35, "tts": 3, "video": 1020 if VEO_AUDIO else 680}
+COST_LABEL = {"text": "Listening and the next question", "search": "Historical research (Google Search)",
+              "translate": "Live translation", "image": "Picture", "tts": "Lantern's voice", "video": "Film scene (8 s)"}
+SESSIONS = {}                                   # session id -> {"spent": n, "items": [...]}
+CURRENT = contextvars.ContextVar("session", default="anon")
+
 # Estimated cost of each paid call in INR, used only for the on-screen credit meter.
-COST_INR = {"text": 1.0, "search": 4.0, "image": 3.5, "tts": 0.3,
+COST_INR = {"text": 1.0, "search": 4.0, "translate": 0.1, "image": 3.5, "tts": 0.3,
             "video": 102.0 if VEO_AUDIO else 68.0}
 
 LIMITS = {
@@ -57,14 +66,21 @@ LIMITS = {
     "image": int(os.environ.get("MAX_IMAGE_CALLS", "40")),
     "video": int(os.environ.get("MAX_VIDEO_CALLS", "8")),
     "tts": int(os.environ.get("MAX_TTS_CALLS", "400")),
+    "translate": int(os.environ.get("MAX_TRANSLATE_CALLS", "2000")),
 }
-USAGE = {"text": 0, "image": 0, "video": 0, "tts": 0}
+USAGE = {"text": 0, "image": 0, "video": 0, "tts": 0, "translate": 0}
 METER = {"spent_inr": 0.0, "calls": {}}      # persisted across restarts when DATA_BUCKET is set
 
 text_client = genai.Client(vertexai=True, project=PROJECT_ID, location="global")
 video_client = genai.Client(vertexai=True, project=PROJECT_ID, location="us-central1")
 
 app = FastAPI(title="Lantern")
+
+
+@app.middleware("http")
+async def session_of(request: Request, call_next):
+    CURRENT.set((request.headers.get("x-lantern-session") or "anon")[:64])
+    return await call_next(request)
 JOBS = {}    # clip id -> {"op", "started", "prompt"}
 MEDIA = {}   # media id -> mp4 bytes (clips and films; kept in memory for this demo)
 SEARCH = types.Tool(google_search=types.GoogleSearch())
@@ -104,11 +120,17 @@ load_meter()
 
 
 def spend(kind: str, price: str | None = None):
+    key = price or kind
+    led = SESSIONS.setdefault(CURRENT.get(), {"spent": 0, "items": []})
+    if led["spent"] + COST_TOKENS[key] > SESSION_TOKENS:
+        raise HTTPException(status_code=402, detail=f"This session's {SESSION_TOKENS:,} tokens are used up. "
+                                                    "Start a new session to continue.")
+    led["spent"] += COST_TOKENS[key]
+    led["items"].append({"t": int(time.time()), "what": COST_LABEL[key], "kind": key, "tokens": COST_TOKENS[key]})
     if USAGE[kind] >= LIMITS[kind]:
         raise HTTPException(status_code=429,
                             detail=f"The {kind} limit ({LIMITS[kind]}) is used up for now. Please try again later.")
     USAGE[kind] += 1
-    key = price or kind
     METER["spent_inr"] = round(METER.get("spent_inr", 0) + COST_INR[key], 2)
     METER.setdefault("calls", {})[key] = METER["calls"].get(key, 0) + 1
     save_meter()
@@ -171,10 +193,19 @@ def sources_of(resp):
     return out[:6]
 
 
-def ask_text(parts, temperature=0.4, search=False):
-    spend("text", "search" if search else "text")
-    cfg = types.GenerateContentConfig(temperature=temperature, tools=[SEARCH] if search else None)
-    return text_client.models.generate_content(model=TEXT_MODEL, contents=parts, config=cfg)
+FAST_THINKING = os.environ.get("FAST_THINKING", "low")
+
+
+def ask_text(parts, temperature=0.4, search=False, fast=False, kind="text"):
+    spend("translate" if kind == "translate" else "text", "search" if search else kind)
+    cfg = dict(temperature=temperature, tools=[SEARCH] if search else None)
+    if fast and FAST_THINKING:
+        try:
+            return text_client.models.generate_content(model=TEXT_MODEL, contents=parts, config=types.GenerateContentConfig(
+                **cfg, thinking_config=types.ThinkingConfig(thinking_level=FAST_THINKING)))
+        except Exception:
+            pass
+    return text_client.models.generate_content(model=TEXT_MODEL, contents=parts, config=types.GenerateContentConfig(**cfg))
 
 
 # ---------- 1 + 2. capture, research and interview ----------
@@ -182,6 +213,7 @@ def ask_text(parts, temperature=0.4, search=False):
 INTERVIEWER = """You are Lantern, a warm, patient interviewer helping a family record {teller}'s memories,
 and a careful historian. Preferred language: {language} (if "auto", use the language they speak).
 {photo_note}
+{about_note}
 
 What we know so far (JSON, may be empty): {memory}
 Research so far (JSON): {research}
@@ -196,13 +228,8 @@ Work through the loop below, then reply.
    and relationships, places, a timeline (with certainty: remembered, approximate, secondhand, unknown),
    what is known and what is still unknown. The answer may confirm, add, correct, or say "I don't
    remember"; unknowns stay unknown. NEVER invent facts or fill gaps.
-2. RESEARCH (Google Search) the world around the storyteller, in three layers, only for what is not
-   already in the research notes:
-   - macro: wars, migrations, political, economic and social change
-   - local: what was happening in that city, village, neighbourhood or community at that time
-   - everyday: food, housing, work, transport, schooling, family life, fears, practical limits
-   Write at most 3 new notes. For each, say how it MIGHT connect to the memory, without assuming the
-   family lived through everything typical of the period.
+2. USE THE RESEARCH NOTES given above (historical research runs separately, in parallel). Do not write new
+   research notes; leave "research" empty.
 3. FIND GAPS in the personal narrative: timeline, context (why a decision), experience (what they saw
    or did), relationship (who influenced it), and inconsistency (conflicts with documented chronology).
    Prioritise them (1 = most useful). If something conflicts with the record, do not correct them;
@@ -257,6 +284,8 @@ async def turn(
     answer_text: str = Form(""),
     skipped: bool = Form(False),
     mode: str = Form("lantern"),
+    topic: str = Form(""),
+    listener: str = Form(""),
     photo: UploadFile | None = File(None),
     audio: UploadFile | None = File(None),
 ):
@@ -274,14 +303,64 @@ async def turn(
                  "and ask about something else." if skipped else "")
     parts.append(INTERVIEWER.format(
         teller=teller, language=language, history=history, research=research, memory=memory,
+        about_note=(f"The story is about: {topic}. " if topic else "") + (
+            f"{teller} is telling it for {listener}. " + (f"You ask on behalf of {listener}: warm, personal, as if "
+            f"{listener} were asking (\"{listener} would love to know...\"), never pretending to be them."
+            if mode != "family" else "") if listener else ""),
         typed=answer_text, skip_note=skip_note, mode_note=FAMILY_NOTE.format(teller=teller) if mode == "family" else "",
         photo_note="They are looking at the attached photo or object." if has_photo else "No photo was shared."))
-    resp = ask_text(parts, temperature=0.5, search=True)
+    out = parse_json(ask_text(parts, temperature=0.5, fast=True).text)
+    out["research"] = []
+    return out
+
+
+RESEARCH = """You are a careful historian supporting a family interview with {teller}.
+What we know (JSON): {memory}
+Latest answer (English): {latest}
+Research notes already written (JSON): {research}
+Research with Google Search the world around the storyteller, in three layers, only for what is new:
+- macro: wars, migrations, political, economic and social change
+- local: what was happening in that city, village, neighbourhood or community at that time
+- everyday: food, housing, work, transport, schooling, family life, fears, practical limits
+Write at most 3 new notes. For each, say how it MIGHT connect to the memory, without assuming the family
+lived through everything typical of the period. If the memory conflicts with documented chronology, say
+so neutrally in "check" (never call anyone wrong).
+Reply with JSON only: {{"research": [{{"layer": "macro|local|everyday", "note": "...", "connection": "..."}}],
+"check": {{"needed": false, "note": "..."}}}}"""
+
+
+class ResearchIn(BaseModel):
+    teller: str = "Nani"
+    memory: dict = {}
+    latest: str = ""
+    research: list = []
+
+
+@app.post("/api/research")
+async def research_step(body: ResearchIn):
+    resp = ask_text([RESEARCH.format(teller=body.teller, memory=json.dumps(body.memory, ensure_ascii=False),
+                                     latest=body.latest, research=json.dumps(body.research, ensure_ascii=False))],
+                    temperature=0.3, search=True)
     out = parse_json(resp.text)
     srcs = sources_of(resp)
     for note in out.get("research", []) or []:
         note["sources"] = srcs[:3]
     return out
+
+
+class TranslateIn(BaseModel):
+    text: str
+    target: str = "English"
+
+
+@app.post("/api/translate")
+async def translate(body: TranslateIn):
+    text = body.text.strip()[:800]
+    if not text:
+        return {"text": ""}
+    resp = ask_text([f"Translate into {body.target}, faithfully and naturally. Reply with the translation only.\n\n{text}"],
+                    temperature=0.1, fast=True, kind="translate")
+    return {"text": (resp.text or "").strip()}
 
 
 # ---------- demo: a fictional storyteller for showing the loop ----------
@@ -629,8 +708,8 @@ def tts_pcm(text: str, language: str = "auto", tone: str = "warm", voice: str | 
     if key in TTS_CACHE:
         return TTS_CACHE[key]
     spend("tts")
-    style = (f"Read this in a {tone} voice, slowly and softly, with real feeling, like a caring grandchild "
-             f"talking to their grandparent. Natural pauses, never robotic") if voice == TTS_VOICE else (
+    style = (f"Read this in a {tone} voice at a natural, gently brisk pace, with real feeling, like a caring "
+             f"grandchild talking to their grandparent. Short natural pauses, never slow or robotic") if voice == TTS_VOICE else (
              f"Speak as a {tone}. Unhurried, with natural pauses and real feeling")
     code = LANG_CODE.get((language or "").strip().lower())
     speech = types.SpeechConfig(voice_config=types.VoiceConfig(
@@ -671,8 +750,11 @@ async def speak(body: SpeakIn):
 
 @app.get("/api/usage")
 async def usage():
+    led = SESSIONS.get(CURRENT.get(), {"spent": 0, "items": []})
     spent = METER.get("spent_inr", 0)
-    return {"used": USAGE, "limits": LIMITS, "credit_start_inr": CREDIT_START,
+    return {"session": {"limit": SESSION_TOKENS, "spent": led["spent"], "left": SESSION_TOKENS - led["spent"],
+                        "items": led["items"][-200:]}, "cost_tokens": COST_TOKENS, "cost_label": COST_LABEL,
+            "used": USAGE, "limits": LIMITS, "credit_start_inr": CREDIT_START,
             "spent_inr": round(spent, 2), "left_inr": round(CREDIT_START - spent, 2),
             "calls": METER.get("calls", {}), "cost_inr": COST_INR, "veo_audio": VEO_AUDIO,
             "models": {"text": TEXT_MODEL, "image": IMAGE_MODEL, "video": VIDEO_MODEL, "voice": TTS_MODELS[0]}}

@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#fdfaf5">
+<title>Lantern — Storytelling Studio</title><link rel="manifest" href="/manifest.json"><link rel="icon" href="/lantern-icon.png"><link rel="apple-touch-icon" href="/lantern-icon.png">
+<link rel="stylesheet" href="/style.css"></head>
+<body><div class="phone">
+  <header class="topbar">
+    <button class="iconbtn" id="backButton" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m14 5-7 7 7 7"/></svg></button>
+    <div class="header-mid brand"><img class="brand-mark" src="/assets/lantern-mark.png" alt="Lantern logo">Lantern</div>
+    <div class="right"><button class="iconbtn" id="libraryButton" aria-label="My stories" title="My stories"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 5c-3-2-6-2-10-1v15c4-1 7-1 10 1 3-2 6-2 10-1V4c-4-1-7-1-10 1Zm0 0v15"/></svg></button>
+      <button class="tokens" id="tokens" aria-label="Tokens left in this session"><i></i><span id="tokLeft">10,000</span></button></div>
+  </header>
+  <main class="stage">
+    <div class="stepbar" id="stepbar"><span class="now"></span><span></span><span></span><span></span><span></span></div>
+
+    <!-- 01 SETUP: tap faces, no writing needed -->
+    <section class="screen active" id="view-setup" aria-labelledby="setup-title">
+      <div class="screen-head"><span class="eyebrow">01 · Before we begin</span><h1 id="setup-title">Whose story are<br>we keeping?</h1></div>
+      <div class="setup-scroll">
+        <div class="setup-card" style="gap:10px">
+          <label class="field-label" for="tellerIn">Who is telling the story? <span class="opt">(optional)</span></label><input class="field" id="tellerIn" placeholder="e.g. Nani, Grandpa, Papa" autocomplete="off">
+          <label class="field-label" for="listenerIn">Who is it for? <span class="opt">(optional)</span></label><input class="field" id="listenerIn" placeholder="e.g. my grandchildren" autocomplete="off">
+          <label class="field-label" for="topicIn">What is it about? <span class="opt">(optional)</span></label><input class="field" id="topicIn" placeholder="e.g. Leaving Lahore in 1947" autocomplete="off">
+        </div>
+        <div class="screen-head"><span class="field-label">Who will ask the questions?</span><div class="choice-two">
+          <button class="mode-card selected" data-mode="lantern"><span class="mode-icon">✧</span><strong id="modeLanternTitle">Lantern asks</strong><small>Gentle questions, spoken out loud.</small></button>
+          <button class="mode-card" data-mode="family"><span class="mode-icon">♡</span><strong>I will ask</strong><small>Just record our conversation.</small></button>
+        </div></div>
+        <div class="inline-options"><label class="ghost" for="setupPhoto">＋ Add an old photo<input id="setupPhoto" type="file" accept="image/*" multiple hidden></label>
+          <label class="ghost">🌐 <select id="lang" aria-label="Interview language"><option value="auto">Any language</option><option>Hindi</option><option>English</option><option>Bengali</option><option>Tamil</option><option>Telugu</option><option>Marathi</option><option>Gujarati</option><option>Punjabi</option><option>Urdu</option><option>Mandarin Chinese</option><option>Japanese</option><option>Korean</option></select></label></div>
+        <div class="photo-row" id="setupImages" hidden></div>
+      </div>
+      <div class="action-foot"><button class="cta" id="begin">Start storytelling <span>→</span></button><small>Always ask permission before recording.</small></div>
+    </section>
+
+    <!-- 02 LANTERN ASKS -->
+    <section class="screen talk" id="view-talk" aria-labelledby="talk-title">
+      <div class="screen-head"><span class="eyebrow" id="talk-eyebrow">02 · Tell your story</span><h1 id="talk-title">Take your time.<br>I'm listening.</h1>
+        <div class="meterline" id="meterline" hidden><span id="meterLabel">Story</span><span class="m6" id="m6"></span></div></div>
+      <div id="openingQuestion" class="qbubble"><span class="smallstar">✳</span><span id="intro-question">What memory would you like to share?</span><button class="minor" id="listenIntro" aria-label="Hear question">🔊</button></div>
+      <div id="followupQuestion" class="question-feature" hidden><div class="spark">✳</div><p class="ack" id="ackText" hidden></p><h3 id="questionText"></h3><p class="qen" id="questionEn" hidden></p><button class="ghost" id="listenQuestion">◖)) Listen to question</button></div>
+      <div class="mic-area" id="talkMicArea"><div class="mic-ring" id="talkRing"><button class="mic-disc" id="talkMic" aria-label="Start or stop recording"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4Zm-7-4a7 7 0 0 0 14 0M12 18v4m-4 0h8"/></svg></button></div>
+       <div class="mic-under"><b id="micHint">Tap the microphone to begin</b><span class="counter" id="clock">00:00</span></div>
+       <div class="micro-tools"><button class="ghost" id="openType">✎ Type instead</button><label class="ghost">🌐 → <select id="trTarget" aria-label="Translate to"></select></label></div>
+      </div>
+      <div class="transcript"><div class="card-label"><span class="livepill" id="livePill"></span><span id="transcriptLabel">Live transcript</span></div><p id="transcriptText">Their words appear here as they speak.</p><p class="tr" id="transcriptTr" hidden></p></div>
+      <div class="action-foot"><div class="inline-options"><button class="minor" id="skipQuestion" hidden>Skip question</button><button class="minor" id="detailsLink">◌ Interview details</button></div><button class="cta" id="finishTalk">I've finished telling →</button></div>
+    </section>
+
+    <!-- 02 FAMILY ASKS -->
+    <section class="screen" id="view-family" aria-labelledby="family-title">
+      <div class="screen-head"><span class="eyebrow">02 · Family conversation</span><h1 id="family-title">Ask away.<br>We'll remember.</h1></div>
+      <div class="family-record"><div class="family-badge" id="familyState">● Ready to record</div><div class="mic-ring" id="familyRing" style="width:160px;height:160px"><button class="mic-disc" id="familyMic" aria-label="Start or stop family recording"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4Zm-7-4a7 7 0 0 0 14 0M12 18v4m-4 0h8"/></svg></button></div><div class="family-time" id="familyClock">00:00</div><div class="family-actions"><button class="ghost" id="familyPause">⏸ Pause</button><button class="ghost" id="familyIdea">✧ Suggest a question</button></div></div>
+      <div class="idea-panel" id="ideaPanel" hidden></div>
+      <div class="transcript"><div class="card-label"><span class="livepill" id="livePill2"></span>Your conversation</div><p id="familyTranscript">Tap the microphone to record. You can pause whenever you need.</p><p class="tr" id="familyTr" hidden></p></div>
+      <div class="action-foot"><button class="cta" id="familyFinish">We're finished →</button><small>Lantern never copies the speaker's voice.</small></div>
+    </section>
+
+    <!-- 03 REVIEW -->
+    <section class="screen" id="view-review" aria-labelledby="review-title">
+      <div class="screen-head"><span class="eyebrow">03 · Review together</span><h1 id="review-title">Is this the story?</h1><div class="inline-options" style="justify-content:flex-start"><button class="ghost" id="hearStory">🔊 Hear the story</button></div></div>
+      <div class="setup-card" style="padding:10px 13px"><label class="field-label" for="storyTitle">Story title</label><input class="field" id="storyTitle" value="A memory worth keeping" style="min-height:41px;padding:9px 11px"></div>
+      <div class="review-list" id="segments"></div>
+      <button class="minor" style="align-self:flex-start" id="addSegment">＋ Add something they said</button>
+      <div class="review-foot action-foot"><button class="cta" id="approve">Yes, this is the story →</button></div>
+    </section>
+
+    <!-- 04 MAKE -->
+    <section class="screen make" id="view-make" aria-labelledby="make-title">
+      <div class="screen-head"><span class="eyebrow">04 · Create your keepsake</span><h1 id="make-title">How would you like to remember it?</h1></div>
+      <div id="makeChoices" style="display:flex;flex-direction:column;gap:12px">
+      <div class="format-choices">
+        <button class="format-card sel" data-format="book"><div class="format-art"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linejoin="round"><path d="M12 5c-3-2-6-2-10-1v15c4-1 7-1 10 1 3-2 6-2 10-1V4c-4-1-7-1-10 1Zm0 0v15"/></svg></div><div class="format-text"><strong>A storybook</strong><small>Their words, pictures and history. Save as PDF.</small><span class="price">~150 tokens</span></div><span class="circle-choice">✓</span></button>
+        <button class="format-card" data-format="film"><div class="format-art video"><svg viewBox="0 0 24 24" fill="white"><path d="m7 4 13 8-13 8z"/></svg></div><div class="format-text"><strong>A short film</strong><small>Narrated scenes, ending in their own voice. MP4.</small><span class="price" id="filmPrice">~2,160 tokens</span></div><span class="circle-choice">✓</span></button>
+      </div>
+      <div class="mutedline"></div>
+      <div class="card-label" style="color:#787b76;letter-spacing:0;font-size:12px">▣ Family photos <span style="font-weight:400;font-size:11px">(optional)</span></div>
+      <div class="photo-row" id="makePhotos"><label class="addphoto" for="makePhoto">＋<input id="makePhoto" type="file" accept="image/*" multiple hidden></label></div>
+      <div class="format-opts" id="filmLength" hidden>Film length <select id="length"><option value="2">16 seconds</option><option value="3" selected>24 seconds</option><option value="4">32 seconds</option></select><span>8-second connected scenes</span></div>
+      </div>
+      <ul class="prog" id="prog" hidden></ul>
+      <div class="err-box" id="makeErr" hidden></div>
+      <div class="action-foot"><button class="cta" id="makeGo">Make my storybook →</button><small id="makeNote">About a minute. Nothing is shared unless you choose to.</small></div>
+    </section>
+
+    <!-- 05 RESULT -->
+    <section class="screen" id="view-result" aria-labelledby="result-title">
+      <div class="screen-head"><span class="eyebrow">05 · Your keepsake</span><h1 id="result-title">Your story, preserved.</h1></div>
+      <div class="result-body" id="resultBody"></div>
+      <div class="action-foot"><div class="out-actions" id="outActions"></div><button class="cta" id="otherFormat">Also make a short film →</button></div>
+    </section>
+
+    <section class="screen" id="view-library"><div class="screen-head"><span class="eyebrow">This session</span><h1>My stories</h1><p class="desc">Only stories made in this session appear here. Save the PDF or video to keep them.</p></div><div class="library-list" id="libraryList"></div><div class="action-foot"><button class="cta" id="newStory">＋ Record a new story</button></div></section>
+    <section class="screen" id="view-details"><div class="screen-head"><span class="eyebrow">For the family helper</span><h1>Interview details</h1><p class="desc">The storyteller never needs to read this screen.</p></div><div class="detail-body" id="detailBody"></div><div class="action-foot"><button class="cta" id="detailsBack">Back to conversation →</button></div></section>
+  </main>
+  <div class="overlay" id="typeOverlay" hidden><div class="sheet"><button class="iconbtn" id="cancelType" style="align-self:flex-end" aria-label="Close">✕</button><h3 id="typeTitle">Write what they said</h3><p id="typeDesc">Typing is optional. We want to hear the story in their own words first.</p><textarea class="field" id="typedAnswer" placeholder="I remember…"></textarea><button class="cta" id="sendType">Save →</button></div></div>
+  <div class="overlay" id="tokenOverlay" hidden><div class="sheet"><button class="iconbtn" id="closeTokens" style="align-self:flex-end" aria-label="Close">✕</button><div id="tokenBody" style="display:flex;flex-direction:column;gap:12px"></div></div></div>
+  <div class="toast" id="toast" hidden></div>
+</div>
+<div id="pdfRoot" aria-hidden="true"></div>
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => Math.round(n).toLocaleString("en-IN");
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const DEMO = new URLSearchParams(location.search).has("demo");
+let SID = null; try { SID = sessionStorage.getItem("lantern-sid"); } catch(e) {}
+if (!SID){ SID = "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); try { sessionStorage.setItem("lantern-sid", SID); } catch(e) {} }
+const S = {view: "setup", previous: "talk", mode: "lantern", tellerName: "", listener: "", topic: "", langPick: "auto", lang: "auto",
+  format: "book", photos: [], history: [], research: [], memory: {}, gaps: [], readiness: {}, checks: [], reasons: [], clips: [],
+  story: null, approved: null, book: null, film: null, stories: [], id: null};
+
+/* ---------- network: every call carries this session's id ---------- */
+function F(url, opts = {}){ opts.headers = {...(opts.headers || {}), "X-Lantern-Session": SID}; return fetch(url, opts); }
+async function api(path, opts = {}){
+  if (opts.json){ opts.method = "POST"; opts.headers = {"Content-Type": "application/json"}; opts.body = JSON.stringify(opts.json); }
+  const r = await F(path, opts); let d = {};
+  try { d = await r.json(); } catch(e) {}
+  refreshTokens();
+  if (!r.ok) throw new Error(d.error || d.detail || ("Something went wrong (" + r.status + "). Please try again."));
+  return d;
+}
+let tokTimer = null, USAGE = null;
+function refreshTokens(){ clearTimeout(tokTimer); tokTimer = setTimeout(async () => {
+  try { USAGE = await (await F("/api/usage")).json(); $("#tokLeft").textContent = fmt(USAGE.session.left); } catch(e) {} }, 300); }
+function sayToast(s){ const t = $("#toast"); t.textContent = s; t.hidden = false; clearTimeout(sayToast.t); sayToast.t = setTimeout(() => t.hidden = true, 3600); }
+
+/* ---------- navigation ---------- */
+function go(view){ $("#toast").hidden = true;
+  S.view = view; $$(".screen").forEach(e => e.classList.toggle("active", e.id === "view-" + view));
+  $("#stepbar").hidden = ["library", "details"].includes(view);
+  const n = {setup: 0, talk: 1, family: 1, review: 2, make: 3, result: 4}[view] ?? 0;
+  $$("#stepbar span").forEach((e, i) => { e.className = i < n ? "done" : i === n ? "now" : ""; });
+}
+
+/* ---------- setup: faces instead of forms ---------- */
+const teller = () => S.tellerName || "The storyteller";
+const short = () => S.tellerName || "them";
+const lang = () => S.langPick === "auto" ? S.lang : S.langPick;
+function modeTitle(){ const l = S.listener; $("#modeLanternTitle").textContent = l && l !== "myself" ? `Lantern asks for ${l.replace(/^my |^the /i, "")}` : "Lantern asks"; }
+function renderSetup(){ $("#tellerIn").value = S.tellerName; $("#listenerIn").value = S.listener; $("#topicIn").value = S.topic; modeTitle(); }
+$("#tellerIn").oninput = e => { S.tellerName = e.target.value.trim(); };
+$("#listenerIn").oninput = e => { S.listener = e.target.value.trim(); modeTitle(); };
+$("#topicIn").oninput = e => { S.topic = e.target.value.trim(); };
+$$(".mode-card").forEach(b => b.onclick = () => { S.mode = b.dataset.mode; $$(".mode-card").forEach(x => x.classList.toggle("selected", x === b)); });
+$("#lang").onchange = () => { S.langPick = $("#lang").value; setTargets(); };
+
+/* ---------- photos ---------- */
+function shrink(file, max = 1024){
+  return new Promise((res, rej) => { const img = new Image();
+    img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL("image/jpeg", .85)); };
+    img.onerror = rej; img.src = URL.createObjectURL(file); });
+}
+function dataUrlToBlob(u){ const [h, b] = u.split(","); const bin = atob(b); const a = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return new Blob([a], {type: h.split(":")[1].split(";")[0]}); }
+async function readPhoto(files){ for (const f of [...files].slice(0, 6 - S.photos.length)) S.photos.push(await shrink(f)); renderPhotos(); }
+function renderPhotos(){
+  const base = $("#makePhotos"); base.querySelectorAll(".uploaded").forEach(x => x.remove());
+  for (const url of S.photos){ const i = document.createElement("img"); i.className = "photo-thumb uploaded"; i.src = url; i.alt = "Family photo"; base.appendChild(i); }
+  $("#setupImages").hidden = !S.photos.length; $("#setupImages").innerHTML = S.photos.map(u => `<img src="${u}" class="photo-thumb" alt="Added photo">`).join("");
+}
+$("#setupPhoto").onchange = e => readPhoto(e.target.files); $("#makePhoto").onchange = e => readPhoto(e.target.files);
+
+/* ---------- typing sheet (optional) ---------- */
+let typeFor = "answer";
+function openType(kind){
+  typeFor = kind; $("#typedAnswer").value = "";
+  const T = {answer: ["Write what they said", "Typing is optional. We want to hear the story in their own words first.", "I remember…"],
+    name: ["Their name", "For example Nani, Dadu or Savitri.", "Name"], listener: ["Who is it for?", "A name, for example Aarav.", "Name"],
+    topic: ["What is it about?", "A few words, for example Leaving Lahore in 1947.", "A few words"]}[kind];
+  $("#typeTitle").textContent = T[0]; $("#typeDesc").textContent = T[1]; $("#typedAnswer").placeholder = T[2];
+  $("#typedAnswer").style.minHeight = kind === "answer" ? "124px" : "52px"; $("#typeOverlay").hidden = false; $("#typedAnswer").focus();
+}
+$("#cancelType").onclick = () => $("#typeOverlay").hidden = true;
+$("#sendType").onclick = async () => {
+  const v = $("#typedAnswer").value.trim(); if (!v){ sayToast("Write a few words first."); return; }
+  $("#typeOverlay").hidden = true;
+  if (typeFor === "name"){ S.tellerName = v; renderSetup(); sayToast("Storyteller: " + v); return; }
+  if (typeFor === "listener"){ S.listener = v; renderSetup(); return; }
+  if (typeFor === "topic"){ S.topic = v; renderSetup(); sayToast("About: " + v); return; }
+  await answerTurn({typed: v});
+};
+
+/* ---------- live transcript (browser) + live translation (Gemini) ---------- */
+const LANG_CODES = {"Hindi":"hi-IN","Bengali":"bn-IN","Tamil":"ta-IN","Telugu":"te-IN","Marathi":"mr-IN","Gujarati":"gu-IN","Punjabi":"pa-IN","Urdu":"ur-IN","English":"en-IN","Mandarin Chinese":"zh-CN","Japanese":"ja-JP","Korean":"ko-KR"};
+const TARGETS = ["English","Hindi","Bengali","Tamil","Telugu","Marathi","Gujarati","Punjabi","Urdu","Spanish","French","Arabic"];
+function setTargets(){ const def = (lang() || "").toLowerCase() === "english" ? "Hindi" : "English";
+  $("#trTarget").innerHTML = TARGETS.map(t => `<option ${t === def ? "selected" : ""}>${t}</option>`).join(""); }
+const trTarget = () => $("#trTarget").value;
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null, srOn = false, heard = "", trQueue = Promise.resolve(), liveEls = null;
+function liveStart(family){
+  heard = ""; liveEls = family ? {p: $("#familyTranscript"), tr: $("#familyTr"), pill: $("#livePill2")} : {p: $("#transcriptText"), tr: $("#transcriptTr"), pill: $("#livePill")};
+  liveEls.p.textContent = "Listening…"; liveEls.tr.textContent = ""; liveEls.tr.hidden = true; liveEls.pill.classList.add("on");
+  if (!family) $("#transcriptLabel").textContent = "Live transcript";
+  if (!SR) return;
+  try {
+    recognition = new SR(); recognition.continuous = true; recognition.interimResults = true;
+    recognition.lang = LANG_CODES[lang()] || navigator.language || "en-IN";
+    recognition.onresult = e => { let interim = "";
+      for (let j = e.resultIndex; j < e.results.length; j++){ const s = e.results[j][0].transcript;
+        if (e.results[j].isFinal){ heard += s + " "; translateLive(s); } else interim += s; }
+      liveEls.p.textContent = (heard + interim).trim() || "Listening…"; };
+    recognition.onerror = () => {}; recognition.onend = () => { if (srOn) try { recognition.start(); } catch(e) {} };
+    srOn = true; recognition.start();
+  } catch(e) {}
+}
+function liveStop(){ srOn = false; if (liveEls) liveEls.pill.classList.remove("on"); try { recognition && recognition.stop(); } catch(e) {} }
+function translateLive(text, els = liveEls){
+  if (!els) return; const target = trTarget();
+  trQueue = trQueue.then(async () => { try { const r = await api("/api/translate", {json: {text, target}});
+    if (r.text){ els.tr.hidden = false; els.tr.textContent += r.text + " "; } } catch(e) {} });
+}
+function showFinal(els, r, text){
+  const o = (r && r.transcript_original) || text; if (!o || !els) return;
+  els.p.textContent = o;
+  if (trTarget() === "English" && r && r.transcript_english && r.transcript_english !== o){ els.tr.hidden = false; els.tr.textContent = r.transcript_english; }
+  else if (!els.tr.textContent) translateLive(o, els);
+}
+$("#trTarget").onchange = () => { const els = {p: $("#transcriptText"), tr: $("#transcriptTr")}; els.tr.textContent = "";
+  const t = els.p.textContent; if (t && !/appear here|Listening/.test(t)) translateLive(t, els); };
+
+/* ---------- microphone ---------- */
+let mediaStream = null, recorder = null, recordChunks = [], clockTimer = null, clockStart = 0, famElapsed = 0;
+async function getAudio(){
+  if (mediaStream && mediaStream.active) return mediaStream;
+  if (!navigator.mediaDevices?.getUserMedia){ sayToast("Recording needs Chrome or Safari on a secure page."); return null; }
+  try { mediaStream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true}}); return mediaStream; }
+  catch(e){ sayToast(e.name === "NotAllowedError" ? "The microphone is blocked. Tap the 🔒 by the web address, allow Microphone, and try again." : "No microphone found. You can type instead."); return null; }
+}
+function newRecorder(s){ const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"]; const t = types.find(x => window.MediaRecorder?.isTypeSupported?.(x));
+  return new MediaRecorder(s, t ? {mimeType: t, audioBitsPerSecond: 32000} : undefined); }
+function releaseMic(){ if (mediaStream){ mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; } }
+const formatTime = t => String(Math.floor(t / 60)).padStart(2, "0") + ":" + String(t % 60).padStart(2, "0");
+function startClock(el, offset = 0){ clockStart = Date.now() - offset; clearInterval(clockTimer); clockTimer = setInterval(() => { el.textContent = formatTime(Math.round((Date.now() - clockStart) / 1000)); }, 500); }
+
+/* ---------- Lantern's voice (Gemini TTS, warm and a little brisk) ---------- */
+let voice = null; const voiceCache = new Map();
+function browserSpeak(text){ try { const u = new SpeechSynthesisUtterance(text); if (LANG_CODES[lang()]) u.lang = LANG_CODES[lang()]; u.rate = 1.05; speechSynthesis.speak(u); } catch(e) {} }
+function stopVoice(){ if (voice){ voice.pause(); voice = null; } $("#followupQuestion").classList.remove("speaking"); try { speechSynthesis.cancel(); } catch(e) {} }
+async function speak(text, tone = "warm", who = null){
+  if (!text) return; stopVoice();
+  try {
+    const key = text + "|" + tone + "|" + who; let url = voiceCache.get(key);
+    if (!url){ const r = await F("/api/speak", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text, language: lang(), tone, voice: who})});
+      refreshTokens(); if (!r.ok) throw new Error(); url = URL.createObjectURL(await r.blob()); voiceCache.set(key, url); }
+    if (recorder && recorder.state === "recording") return;
+    voice = new Audio(url); voice.playbackRate = 1.12; if (!who) $("#followupQuestion").classList.add("speaking");
+    const done = new Promise(res => { voice.onended = voice.onerror = () => { $("#followupQuestion").classList.remove("speaking"); res(); }; });
+    await voice.play(); await done;
+  } catch(e){ if (!who) browserSpeak(text); }
+}
+
+/* ---------- interview turns (fast); history research runs alongside ---------- */
+let pendingQ = {o: "What memory would you like to share?", e: "", ack: "", tone: "warm"}, researching = Promise.resolve();
+const fullQ = () => [pendingQ.ack, pendingQ.o].filter(Boolean).join(" ");
+const MOOD = ["Just started", "Warming up", "Taking shape", "Getting richer", "Nearly there", "Almost ready", "Ready to tell"];
+function meters(){ const n = Object.values(S.readiness || {}).filter(Boolean).length;
+  $("#meterline").hidden = !S.history.length; $("#meterLabel").textContent = "Story · " + MOOD[n];
+  $("#m6").innerHTML = Array.from({length: 6}, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join(""); }
+async function sendTurn({audio = null, typed = "", skipped = false} = {}){
+  const fd = new FormData();
+  fd.append("teller", teller()); fd.append("language", lang()); fd.append("mode", S.mode);
+  fd.append("topic", S.topic || ""); fd.append("listener", S.listener || "");
+  fd.append("history", JSON.stringify(S.history.slice(-12)));
+  fd.append("research", JSON.stringify(S.research.slice(-9).map(r => ({layer: r.layer, note: r.note}))));
+  fd.append("memory", JSON.stringify(S.memory || {}));
+  if (skipped) fd.append("skipped", "true");
+  if (S.photos[0] && S.history.length === 0) fd.append("photo", dataUrlToBlob(S.photos[0]), "photo.jpg");
+  if (audio) fd.append("audio", audio, "answer." + (audio.type.includes("mp4") ? "mp4" : "webm"));
+  if (typed) fd.append("answer_text", typed);
+  const r = await api("/api/turn", {method: "POST", body: fd});
+  if (r.language) S.lang = r.language;
+  const q = S.mode === "lantern" ? pendingQ : {};
+  if (skipped) S.history.push({question_original: q.o || "", question_english: q.e || "", answer_original: "(skipped)", answer_english: "(skipped)"});
+  if (audio || typed) S.history.push({question_original: q.o || "", question_english: q.e || "", answer_original: r.transcript_original || typed, answer_english: r.transcript_english || ""});
+  if (r.memory && Object.keys(r.memory).length) S.memory = r.memory;
+  S.gaps = r.gaps || S.gaps; S.readiness = r.readiness || S.readiness;
+  if (r.check?.needed && r.check.note) S.checks.push(r.check.note);
+  if (r.question_reason) S.reasons.push({q: r.question_english || r.question_original, why: r.question_reason});
+  meters();
+  if (audio || typed) researching = researchStep(r.transcript_english || r.transcript_original || typed);
+  return r;
+}
+async function researchStep(latest){
+  try { const r = await api("/api/research", {json: {teller: teller(), memory: S.memory, latest, research: S.research.map(n => ({layer: n.layer, note: n.note}))}});
+    for (const n of (r.research || [])) if (n.note && !S.research.some(x => x.note === n.note)) S.research.push(n);
+    if (r.check?.needed && r.check.note) S.checks.push(r.check.note);
+  } catch(e) {}
+}
+function setQuestion(r){
+  pendingQ = {o: r.question_original, e: r.question_english, ack: r.acknowledgement_original || "", tone: r.tone || "warm"};
+  $("#openingQuestion").hidden = true; $("#followupQuestion").hidden = false;
+  $("#talk-eyebrow").textContent = r.ready_to_close ? "02 · Ready when you are" : "02 · A thoughtful follow-up";
+  $("#talk-title").innerHTML = r.ready_to_close ? "A beautiful story.<br>Anything more?" : "Let's go a little<br>deeper.";
+  $("#ackText").textContent = pendingQ.ack; $("#ackText").hidden = !pendingQ.ack;
+  $("#questionText").textContent = pendingQ.o;
+  $("#questionEn").textContent = pendingQ.e || ""; $("#questionEn").hidden = !pendingQ.e || pendingQ.e === pendingQ.o;
+  $("#skipQuestion").hidden = false; $("#transcriptLabel").textContent = "Their last answer";
+  $("#micHint").textContent = "Tap to answer out loud";
+  $("#talkRing").style.width = $("#talkRing").style.height = "128px";
+  $("#talkMic").style.width = $("#talkMic").style.height = "76px"; $("#talkMicArea").style.minHeight = "150px";
+  if (r.ready_to_close) sayToast("Lantern has enough for a story. Add more, or tap “I've finished telling”.");
+}
+function busy(on){ $("#talkMic").disabled = on; $("#skipQuestion").disabled = on; $("#finishTalk").disabled = on; $("#openType").disabled = on;
+  if (on) $("#micHint").textContent = "Listening back…"; }
+async function answerTurn({audio = null, typed = ""} = {}){
+  busy(true); const els = {p: $("#transcriptText"), tr: $("#transcriptTr")};
+  if (typed){ els.p.textContent = typed; els.tr.textContent = ""; }
+  try { const r = await sendTurn({audio, typed}); showFinal(els, r, typed); setQuestion(r); busy(false); if (!demoMode) speak(fullQ(), pendingQ.tone); return r; }
+  catch(e){ if (audio) S.clips.pop(); sayToast(e.message); busy(false); $("#micHint").textContent = "Tap to try again"; }
+}
+
+/* ---------- Lantern asks: record one answer at a time ---------- */
+async function startTalk(){
+  const stream = await getAudio(); if (!stream) return;
+  stopVoice(); recordChunks = []; recorder = newRecorder(stream);
+  recorder.ondataavailable = e => { if (e.data.size) recordChunks.push(e.data); };
+  recorder.onstop = async () => {
+    clearInterval(clockTimer); liveStop(); $("#talkRing").classList.remove("recording");
+    const blob = new Blob(recordChunks, {type: recorder.mimeType || "audio/webm"});
+    if (blob.size < 2000){ $("#micHint").textContent = "I didn't hear anything. Tap to try again."; if (recorder._after) recorder._after(); return; }
+    S.clips.push(blob); await answerTurn({audio: blob}); if (recorder._after) recorder._after();
+  };
+  recorder.start(250); $("#talkRing").classList.add("recording"); $("#micHint").textContent = "Tap again when finished";
+  startClock($("#clock")); liveStart(false);
+}
+$("#talkMic").onclick = () => (recorder && recorder.state === "recording") ? recorder.stop() : startTalk();
+$("#listenIntro").onclick = () => speak(pendingQ.o, "warm");
+$("#listenQuestion").onclick = () => speak(fullQ(), pendingQ.tone);
+$("#openType").onclick = () => openType("answer");
+$("#skipQuestion").onclick = async () => { busy(true);
+  try { const r = await sendTurn({skipped: true}); setQuestion(r); busy(false); speak(fullQ(), pendingQ.tone); } catch(e){ sayToast(e.message); busy(false); } };
+$("#finishTalk").onclick = () => toReview();
+$("#detailsLink").onclick = () => { S.previous = S.view; renderDetails(); go("details"); };
+$("#detailsBack").onclick = () => go(S.previous);
+
+function resetStory(){
+  Object.assign(S, {history: [], research: [], memory: {}, gaps: [], readiness: {}, checks: [], reasons: [], clips: [], story: null, approved: null,
+    book: null, film: null, lang: "auto", id: "s" + Date.now()});
+  pendingQ = {o: "", e: "", ack: "", tone: "warm"}; meters();
+}
+$("#begin").onclick = async () => {
+  resetStory();
+  if (S.mode === "family"){
+    $("#family-title").innerHTML = "Recording with<br>" + esc(short()) + ".";
+    $("#familyTranscript").textContent = "Tap the microphone to record. You can pause whenever you need."; $("#familyTr").hidden = true; $("#ideaPanel").hidden = true;
+    $("#familyClock").textContent = "00:00"; famElapsed = 0; go("family"); return;
+  }
+  const first = S.photos.length ? "Tell me about this photo. What memory does it bring back?"
+    : S.topic ? `Tell me about ${S.topic.toLowerCase()}. What do you remember first?` : "What memory would you like to share?";
+  pendingQ = {o: first, e: "", ack: "", tone: "warm"};
+  $("#intro-question").textContent = first; $("#openingQuestion").hidden = false; $("#followupQuestion").hidden = true;
+  $("#talk-eyebrow").textContent = "02 · Tell your story"; $("#talk-title").innerHTML = "Take your time.<br>I'm listening.";
+  $("#skipQuestion").hidden = true; $("#transcriptText").textContent = "Their words appear here as they speak."; $("#transcriptTr").hidden = true;
+  $("#transcriptLabel").textContent = "Live transcript"; $("#clock").textContent = "00:00"; $("#micHint").textContent = "Tap the microphone to begin";
+  $("#talkRing").style.width = $("#talkRing").style.height = ""; $("#talkMic").style.width = $("#talkMic").style.height = ""; $("#talkMicArea").style.minHeight = "";
+  go("talk"); speak(first, "warm and welcoming");
+};
+
+/* ---------- I will ask: one continuous family recording ---------- */
+let famPaused = false;
+function famStartPart(){ recordChunks = []; recorder = newRecorder(mediaStream); recorder.ondataavailable = e => { if (e.data.size) recordChunks.push(e.data); }; recorder.start(1000); }
+function famPart(){ return new Promise(res => { if (!recorder || recorder.state === "inactive") return res(null);
+  recorder.onstop = () => res(new Blob(recordChunks, {type: recorder.mimeType || "audio/webm"})); recorder.stop(); }); }
+async function famSend(blob){ const els = {p: $("#familyTranscript"), tr: $("#familyTr")};
+  if (!blob || blob.size < 2000) return null; S.clips.push(blob); const r = await sendTurn({audio: blob}); showFinal(els, r); return r; }
+$("#familyMic").onclick = async () => {
+  if (recorder && recorder.state !== "inactive"){ $("#familyFinish").click(); return; }
+  if (!await getAudio()) return;
+  famPaused = false; famStartPart(); liveStart(true); startClock($("#familyClock"), famElapsed * 1000);
+  $("#familyRing").classList.add("recording"); $("#familyState").textContent = "● Recording your conversation";
+};
+$("#familyPause").onclick = () => {
+  if (!recorder || recorder.state === "inactive"){ sayToast("Start recording first."); return; }
+  if (recorder.state === "recording"){ recorder.pause(); famPaused = true; clearInterval(clockTimer); famElapsed = Math.round((Date.now() - clockStart) / 1000); liveStop();
+    $("#familyPause").textContent = "▶ Resume"; $("#familyState").textContent = "Paused"; $("#familyRing").classList.remove("recording"); }
+  else { recorder.resume(); famPaused = false; startClock($("#familyClock"), famElapsed * 1000); liveStart(true);
+    $("#familyPause").textContent = "⏸ Pause"; $("#familyState").textContent = "● Recording your conversation"; $("#familyRing").classList.add("recording"); }
+};
+$("#familyIdea").onclick = async () => {
+  if (!recorder || recorder.state === "inactive"){ sayToast("Record a little first, then ask for an idea."); return; }
+  $("#familyIdea").disabled = true; sayToast("Lantern is listening to what you have so far…");
+  const wasPaused = famPaused; liveStop(); const blob = await famPart(); famStartPart(); if (wasPaused) recorder.pause(); else liveStart(true);
+  try { const r = await famSend(blob);
+    if (r){ $("#ideaPanel").hidden = false; $("#ideaPanel").innerHTML = "✧ “" + esc(r.question_original) + "”" + (r.question_english && r.question_english !== r.question_original ? `<div class="sub" style="font-family:var(--sans);margin-top:4px">${esc(r.question_english)}</div>` : ""); }
+    else sayToast("Talk a little longer, then ask for an idea.");
+  } catch(e){ sayToast(e.message); }
+  $("#familyIdea").disabled = false;
+};
+$("#familyFinish").onclick = async () => {
+  $("#familyFinish").disabled = true; liveStop(); clearInterval(clockTimer); $("#familyRing").classList.remove("recording");
+  const blob = await famPart(); sayToast("Lantern is listening to the conversation…");
+  try { await famSend(blob); await toReview(); } catch(e){ sayToast(e.message); }
+  $("#familyFinish").disabled = false;
+};
+
+function stopAll(){ liveStop(); stopVoice(); demoMode = false; clearInterval(clockTimer);
+  try { if (recorder && recorder.state !== "inactive"){ recorder.onstop = null; recorder.stop(); } } catch(e) {}
+  $("#talkRing").classList.remove("recording"); $("#familyRing").classList.remove("recording"); releaseMic(); }
+
+/* ---------- 03 review ---------- */
+const KIND = {memory: "In their words", fact: "History", uncertain: "Not sure yet"};
+async function toReview(){
+  if (recorder && recorder.state === "recording" && S.mode === "lantern") await new Promise(r => { recorder._after = r; recorder.stop(); });
+  if (!S.history.some(h => h.answer_original !== "(skipped)")){ sayToast("Record or type at least one memory first."); return; }
+  sayToast("Putting the story together…"); $("#finishTalk").disabled = true;
+  try {
+    await Promise.race([researching, wait(8000)]);
+    S.story = await api("/api/reconstruct", {json: {teller: teller(), language: S.lang, history: S.history, research: S.research, memory: S.memory}});
+    stopAll(); $("#storyTitle").value = S.story.title || S.topic || "A memory worth keeping";
+    S.segments = (S.story.segments || []).map(s => ({...s})); renderReview(); go("review");
+  } catch(e){ sayToast(e.message); }
+  $("#finishTalk").disabled = false;
+}
+function renderReview(){
+  const root = $("#segments"); root.innerHTML = "";
+  S.segments.forEach((s, i) => {
+    const node = document.createElement("article"); node.className = "segment " + (s.kind === "fact" ? "fact" : s.kind === "uncertain" ? "uncertain" : "");
+    const origin = s.kind === "memory" ? (s.origin === "secondhand" ? " · heard from family" : s.origin === "firsthand" ? " · lived it" : "") : "";
+    node.innerHTML = `<small>${KIND[s.kind] || KIND.memory}${origin}</small><p>${esc(s.original)}</p>${s.english && s.english !== s.original ? `<p style="font-size:12px;color:#8d8a84">${esc(s.english)}</p>` : ""}
+      <div class="tools"><button data-edit="${i}">✎ Change</button><button data-kind="${i}">Change label</button><button data-delete="${i}">Remove</button></div>`;
+    root.appendChild(node);
+  });
+  root.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { const i = +b.dataset.edit; const p = b.closest(".segment").querySelector("p");
+    p.outerHTML = `<textarea class="field" style="min-height:76px" aria-label="Edit">${esc(S.segments[i].original)}</textarea>`; b.textContent = "✓ Done";
+    b.onclick = () => { const v = b.closest(".segment").querySelector("textarea").value.trim(); if (v !== S.segments[i].original){ S.segments[i].original = v; S.segments[i].english = ""; } renderReview(); }; });
+  root.querySelectorAll("[data-delete]").forEach(b => b.onclick = () => { S.segments.splice(+b.dataset.delete, 1); renderReview(); });
+  root.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => { const s = S.segments[+b.dataset.kind]; s.kind = {memory: "uncertain", uncertain: "fact", fact: "memory"}[s.kind] || "memory"; renderReview(); });
+}
+$("#addSegment").onclick = () => { S.segments.push({kind: "memory", original: "", english: ""}); renderReview();
+  const last = $("#segments").lastElementChild; last.querySelector("[data-edit]").click(); last.querySelector("textarea").focus(); };
+$("#hearStory").onclick = async () => { const b = $("#hearStory");
+  if (b.dataset.on){ delete b.dataset.on; stopVoice(); b.textContent = "🔊 Hear the story"; return; }
+  b.dataset.on = 1; b.textContent = "■ Stop";
+  const nodes = [...$("#segments").children];
+  for (let i = 0; i < S.segments.length; i++){ if (!b.dataset.on) break; const s = S.segments[i]; if (s.kind === "fact" || !s.original) continue;
+    nodes[i].style.outline = "2px solid var(--orange2)"; await speak(s.original, "gentle storyteller"); nodes[i].style.outline = ""; }
+  delete b.dataset.on; b.textContent = "🔊 Hear the story"; };
+$("#approve").onclick = () => {
+  const segs = S.segments.filter(s => (s.original || "").trim());
+  if (!segs.length){ sayToast("Keep at least one part of the story."); return; }
+  S.approved = {...S.story, title: $("#storyTitle").value.trim() || "A memory worth keeping", segments: segs, teller: teller(), listener: S.listener};
+  S.book = null; S.film = null; renderMake(); go("make");
+};
+
+/* ---------- 04 make: storybook (PDF) or short film (MP4) ---------- */
+const filmCost = n => 120 + n * ((USAGE && USAGE.cost_tokens && USAGE.cost_tokens.video) || 680);
+function renderMake(){
+  const film = S.format === "film";
+  $$(".format-card").forEach(e => e.classList.toggle("sel", e.dataset.format === S.format));
+  $("#filmLength").hidden = !film; $("#filmPrice").textContent = "~" + fmt(filmCost(+$("#length").value)) + " tokens";
+  $("#makeGo").textContent = film ? "Make my short film →" : "Make my storybook →";
+  $("#makeNote").textContent = film ? `About ${+$("#length").value + 1} minutes · ~${fmt(filmCost(+$("#length").value))} tokens` : "About a minute · ~150 tokens";
+  $("#makeChoices").hidden = false; $("#prog").hidden = true; $("#makeErr").hidden = true; $("#makeGo").disabled = false;
+}
+$$(".format-card").forEach(b => b.onclick = () => { S.format = b.dataset.format; renderMake(); });
+$("#length").onchange = renderMake;
+function progress(items){ const ul = $("#prog"); ul.hidden = false; ul.innerHTML = items.map(t => `<li>${esc(t)}</li>`).join(""); return i => ul.children[i]; }
+function canAfford(t){ const left = USAGE ? USAGE.session.left : 10000; if (left < t){ $("#makeErr").hidden = false; $("#makeErr").textContent = `This needs about ${fmt(t)} tokens; ${fmt(left)} are left in this session.`; return false; } return true; }
+$("#makeGo").onclick = () => S.format === "film" ? makeFilm() : makeBook();
+async function makeBook(){
+  if (!canAfford(150)) return; $("#makeChoices").hidden = true; $("#makeErr").hidden = true; $("#makeGo").disabled = true;
+  const p = progress(["Planning the pictures", "Restoring the photo", "Painting the pictures"]);
+  try {
+    p(0).className = "on"; const plan = await api("/api/plan", {json: {format: "storybook", story: S.approved}}); p(0).className = "done";
+    let cover = null;
+    if (S.photos.length){ p(1).className = "on"; try { cover = (await api("/api/restore", {json: {photos: [S.photos[0]]}})).image; p(1).className = "done"; } catch(e){ cover = S.photos[0]; p(1).className = "fail"; } }
+    else p(1).className = "done";
+    p(2).className = "on"; const pages = [];
+    await Promise.all((plan.scenes || []).slice(0, 3).map(async (sc, i) => { try { pages[i] = {img: (await api("/api/illustrate", {json: {prompt: sc.prompt, photos: S.photos.slice(0, 3)}})).image, caption: sc.caption}; } catch(e) {} }));
+    const got = pages.filter(Boolean); p(2).className = got.length ? "done" : "fail";
+    S.book = {cover, pages: got}; saveStory(); renderResult("book"); go("result");
+  } catch(e){ $("#makeErr").hidden = false; $("#makeErr").textContent = e.message; $("#makeChoices").hidden = false; $("#prog").hidden = true; }
+  $("#makeGo").disabled = false;
+}
+async function makeFilm(){
+  const n = +$("#length").value; if (!canAfford(filmCost(n))) return; $("#makeChoices").hidden = true; $("#makeErr").hidden = true; $("#makeGo").disabled = true;
+  const p = progress(["Writing the storyboard", "Painting the first picture", ...Array.from({length: n}, (_, i) => `Filming scene ${i + 1} of ${n} (about a minute)`), "Adding narration and their own voice"]);
+  try {
+    p(0).className = "on"; const plan = await api("/api/plan", {json: {format: "film", story: S.approved, shots: n}}); p(0).className = "done";
+    p(1).className = "on"; let frame = (await api("/api/illustrate", {json: {prompt: plan.opening_frame, photos: S.photos.slice(0, 3), wide: true}})).image; p(1).className = "done";
+    const shots = (plan.shots || []).slice(0, n), clipIds = [];
+    for (let i = 0; i < shots.length; i++){
+      const li = p(2 + i); li.className = "on";
+      const {id} = await api("/api/clip", {json: {image: frame, prompt: shots[i].motion || shots[i].caption}});
+      let r; do { await wait(6000); r = await api("/api/clip/" + id); } while (!r.done);
+      if (r.error){ li.className = "fail"; throw new Error(`Scene ${i + 1} couldn't be made: ${r.error}`); }
+      li.className = "done"; clipIds.push(id); frame = r.last_frame;
+    }
+    const last = p(2 + shots.length); last.className = "on";
+    const own = S.clips.find(c => c.size > 30000 && c.size < 4e6);
+    const voiceData = own ? await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(own); }) : null;
+    const f = await api("/api/film", {json: {clips: clipIds, narration: shots.map(s => s.narration || ""), language: S.lang || lang(), voice: voiceData, teller: S.approved.teller}});
+    last.className = "done";
+    const blob = await (await F(f.url)).blob();
+    S.film = {title: plan.title || S.approved.title, blob: new Blob([blob], {type: "video/mp4"})};
+    saveStory(); renderResult("film"); go("result");
+  } catch(e){ $("#makeErr").hidden = false; $("#makeErr").textContent = e.message; $("#makeChoices").hidden = false; $("#prog").hidden = true; }
+  $("#makeGo").disabled = false;
+}
+
+/* ---------- 05 result ---------- */
+function bookHTML(book, story){
+  const segs = story.segments || [], pages = book.pages || []; let pi = 0;
+  const every = Math.max(1, Math.ceil(segs.length / (pages.length + 1)));
+  const fig = pg => `<div class="reader"><img src="${pg.img}" alt="${esc(pg.caption)}"><small>${esc(pg.caption)}</small></div>`;
+  let html = `<div class="book-cover"><img src="${book.cover || "/assets/family-memory.jpg"}" alt="Family photograph"><h3>${esc(story.title)}</h3><p>A family story told by ${esc(story.teller)}${story.listener ? ", for " + esc(story.listener) : ""}</p></div>`;
+  segs.forEach((s, i) => {
+    html += `<div class="reader ${s.kind === "fact" ? "fact" : s.kind === "uncertain" ? "uncertain" : ""}"><small>${KIND[s.kind] || KIND.memory}</small><p>${esc(s.kind === "memory" ? s.original : (s.english || s.original))}</p>
+      ${s.kind === "memory" && s.english && s.english !== s.original ? `<p class="en">${esc(s.english)}</p>` : ""}
+      ${(s.sources || []).length ? `<div class="src">${s.sources.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(" · ")}</div>` : ""}</div>`;
+    if ((i + 1) % every === 0 && pi < pages.length) html += fig(pages[pi++]);
+  });
+  while (pi < pages.length) html += fig(pages[pi++]);
+  return html;
+}
+const safeName = t => (t || "story").replace(/[^\w\- ]+/g, "").trim() || "story";
+let pdfLib = null;
+function loadPdfLib(){ return pdfLib || (pdfLib = new Promise((res, rej) => { const s = document.createElement("script");
+  s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+  s.onload = () => res(window.html2pdf); s.onerror = () => { pdfLib = null; rej(new Error("Couldn't load the PDF maker. Check the internet connection.")); };
+  document.head.appendChild(s); })); }
+async function makePdf(book, story){
+  const lib = await loadPdfLib(); const root = $("#pdfRoot");
+  root.innerHTML = `<div>${bookHTML(book, story)}<p style="font-size:12px;color:#868784;margin-top:12px">Made with Lantern · ${new Date().toLocaleDateString()}</p></div>`;
+  await Promise.all([...root.querySelectorAll("img")].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
+  const blob = await lib().set({margin: 10, filename: safeName(story.title) + ".pdf", image: {type: "jpeg", quality: .9},
+    html2canvas: {scale: 2, useCORS: true, backgroundColor: "#ffffff"}, jsPDF: {unit: "mm", format: "a4"}, pagebreak: {mode: ["css", "legacy"]}}).from(root.firstElementChild).outputPdf("blob");
+  root.innerHTML = ""; return new Blob([blob], {type: "application/pdf"});
+}
+function download(blob, name){ const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+async function shareFile(blob, name, title){ const file = new File([blob], name, {type: blob.type});
+  try { if (navigator.canShare?.({files: [file]})) await navigator.share({files: [file], title}); else { download(blob, name); sayToast("Saved. Share it from your downloads."); } } catch(e) {} }
+let player = null;
+function playAll(clips, btn){ const label = btn.dataset.label || btn.textContent;
+  if (player){ player.pause(); player = null; btn.textContent = label; return; }
+  btn.dataset.label = label; let i = 0; btn.textContent = "■ Stop";
+  const next = () => { if (i >= clips.length){ player = null; btn.textContent = label; return; } player = new Audio(URL.createObjectURL(clips[i++])); player.onended = next; player.play(); };
+  next(); }
+function renderResult(which, item = null){
+  const it = item || {book: S.book, film: S.film, story: S.approved, recordings: S.clips};
+  const story = it.story, n = safeName(story.title);
+  $("#result-title").textContent = which === "book" ? "Your story, preserved." : "A film from this story.";
+  $("#resultBody").innerHTML = which === "book" ? bookHTML(it.book, story)
+    : `<video class="film" src="${URL.createObjectURL(it.film.blob)}" controls playsinline></video><div class="film-tile"><b>${esc(it.film.title)}</b><p>Narrated in their language, ending with a moment in their own voice.</p></div>`;
+  const acts = $("#outActions"); acts.innerHTML = "";
+  const btn = (label, fn) => { const b = document.createElement("button"); b.className = "ghost"; b.textContent = label; b.onclick = () => fn(b); acts.appendChild(b); };
+  const run = async (b, fn) => { const old = b.textContent; b.disabled = true; b.textContent = "Preparing…"; try { await fn(); } catch(e){ sayToast(e.message); } b.disabled = false; b.textContent = old; };
+  if (which === "book"){ btn("⬇ Save PDF", b => run(b, async () => download(await makePdf(it.book, story), n + ".pdf")));
+    btn("↗ Share", b => run(b, async () => shareFile(await makePdf(it.book, story), n + ".pdf", story.title))); }
+  else { btn("⬇ Save MP4", () => download(it.film.blob, n + ".mp4")); btn("↗ Share", () => shareFile(it.film.blob, n + ".mp4", story.title)); }
+  if ((it.recordings || []).length) btn("▶ Hear them", b => playAll(it.recordings, b));
+  const other = which === "book" ? "film" : "book";
+  const has = other === "book" ? it.book : it.film;
+  $("#otherFormat").textContent = has ? (other === "film" ? "Show the film →" : "Show the storybook →") : (other === "film" ? "Also make a short film →" : "Also make a storybook →");
+  $("#otherFormat").onclick = () => { if (has) return renderResult(other, item);
+    if (item) Object.assign(S, {approved: item.story, book: item.book, film: item.film, clips: item.recordings || [], id: item.id});
+    S.format = other; renderMake(); go("make"); };
+}
+
+/* ---------- my stories: this session only ---------- */
+function saveStory(){ const it = {id: S.id, title: S.approved.title, teller: teller(), story: S.approved, book: S.book, film: S.film, recordings: S.clips, date: new Date().toISOString()};
+  S.stories = S.stories.filter(x => x.id !== it.id); S.stories.unshift(it); }
+function renderLibrary(){
+  $("#libraryList").innerHTML = S.stories.length ? S.stories.map((x, i) => `<button class="story-row" data-open="${i}"><span><b>${esc(x.title)}</b><small>${esc(x.teller)} · ${[x.book && "Storybook", x.film && "Film"].filter(Boolean).join(" + ")}</small></span><span>›</span></button>`).join("")
+    : '<div class="segment"><p>No stories yet in this session. Record a memory to begin.</p></div>';
+  $$("[data-open]").forEach(b => b.onclick = () => { const x = S.stories[+b.dataset.open]; renderResult(x.book ? "book" : "film", x); go("result"); });
+}
+$("#libraryButton").onclick = () => { if (["talk", "family"].includes(S.view) && recorder && recorder.state !== "inactive"){ sayToast("Stop recording first."); return; } renderLibrary(); go("library"); };
+$("#newStory").onclick = () => { S.photos = []; renderPhotos(); go("setup"); };
+
+/* ---------- details and tokens ---------- */
+function renderDetails(){
+  const m = S.memory || {}; const li = (a, f, e) => a.length ? "<ul>" + a.map(f).join("") + "</ul>" : `<p>${e}</p>`;
+  const READY = {timeline: "Core timeline", people_places: "People and places", history: "Historical context", gaps: "Major gaps addressed", substance: "Enough for a story", uncertainty: "Uncertainty noted"};
+  $("#detailBody").innerHTML = `<details open><summary>Story readiness · ${Object.values(S.readiness).filter(Boolean).length}/6</summary>${li(Object.entries(READY), ([k, v]) => `<li>${S.readiness[k] ? "✓" : "○"} ${v}</li>`, "")}</details>
+    <details open><summary>Timeline</summary>${li(m.timeline || [], t => `<li><b>${esc(t.when || "When?")}</b> ${esc(t.what)} <i>(${esc(t.certainty || "")})</i></li>`, "Nothing yet.")}</details>
+    <details><summary>People and places</summary>${li([...(m.people || []).map(x => esc(x.name) + (x.relation ? " · " + esc(x.relation) : "")), ...(m.places || []).map(x => "📍 " + esc(x))], x => `<li>${x}</li>`, "Nothing yet.")}</details>
+    <details><summary>Still missing</summary>${li([...(S.gaps || [])].sort((a, b) => (a.priority || 9) - (b.priority || 9)), g => `<li>${esc(g.detail)}</li>`, "No open gaps.")}</details>
+    <details><summary>Gentle checks</summary>${li(S.checks, c => `<li>${esc(c)}</li>`, "None so far.")}</details>
+    <details><summary>Historical research · ${S.research.length}</summary>${li(S.research, n => `<li>${esc(n.note)}${(n.sources || []).length ? "<br>" + n.sources.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(" · ") : ""}</li>`, "Researching as they talk.")}</details>
+    <details><summary>Why each question</summary>${li(S.reasons, r => `<li><b>${esc(r.q)}</b><br>${esc(r.why)}</li>`, "No questions yet.")}</details>
+    <details><summary>Full conversation</summary>${li(S.history, h => `<li>${h.question_original ? `<b>${esc(h.question_original)}</b><br>` : ""}${esc(h.answer_original)}</li>`, "No turns yet.")}</details>`;
+}
+$("#tokens").onclick = async () => {
+  try { USAGE = await (await F("/api/usage")).json(); } catch(e) {}
+  const s = USAGE ? USAGE.session : {limit: 10000, spent: 0, left: 10000, items: []};
+  const g = {}; (s.items || []).forEach(i => { g[i.what] = g[i.what] || {n: 0, t: 0}; g[i.what].n++; g[i.what].t += i.tokens; });
+  const price = USAGE ? Object.entries(USAGE.cost_tokens).map(([k, v]) => `<li><span>${esc(USAGE.cost_label[k])}</span><b>${fmt(v)}</b></li>`).join("") : "";
+  $("#tokenBody").innerHTML = `<span class="eyebrow">This session</span><h3>${fmt(s.left)} tokens left</h3><p>of ${fmt(s.limit)} for this session. Earlier sessions are not shown.</p>
+    <div class="gauge"><i style="width:${Math.min(100, s.spent / s.limit * 100)}%"></i></div>
+    <span class="card-label">Used so far · ${fmt(s.spent)}</span><ul class="ledger">${Object.keys(g).length ? Object.entries(g).map(([w, x]) => `<li><span>${esc(w)} × ${x.n}</span><b>${fmt(x.t)}</b></li>`).join("") : "<li><span>Nothing used yet</span></li>"}</ul>
+    <span class="card-label">What things cost</span><ul class="ledger">${price}<li><span>A storybook (about)</span><b>150</b></li><li><span>A 24-second film (about)</span><b>${fmt(filmCost(3))}</b></li></ul>`;
+  $("#tokenOverlay").hidden = false;
+};
+$("#closeTokens").onclick = () => $("#tokenOverlay").hidden = true;
+
+/* ---------- back button ---------- */
+$("#backButton").onclick = () => {
+  if (S.view === "setup") location.href = "/";
+  else if (S.view === "talk" || S.view === "family"){ if (S.history.length && !confirm("Leave this conversation?")) return; stopAll(); go("setup"); }
+  else if (S.view === "review") go(S.mode === "family" ? "family" : "talk");
+  else if (S.view === "make") go("review");
+  else if (S.view === "result") go("make");
+  else if (S.view === "details") go(S.previous);
+  else go("setup");
+};
+
+/* ---------- demo (only with ?demo=1): a fictional storyteller ---------- */
+let demoMode = false;
+const PARTITION_OPENING = "When I was ten, we left Lahore on a train. My mother sewed her gold bangles into my frock, and my father locked our house and kept the big key. He said we would be back in a few weeks. We left in early August, before the border line was announced.";
+async function runDemo(){
+  S.tellerName = "Dadi"; S.listener = "her grandchildren"; S.topic = "Leaving Lahore in 1947"; S.langPick = "English"; S.mode = "lantern"; renderSetup();
+  resetStory(); demoMode = true; setTargets();
+  $("#begin").onclick.call(null); await wait(400);
+  sayToast("Demo: Dadi is fictional. The history is real.");
+  let answer = PARTITION_OPENING;
+  try {
+    for (let cycle = 1; cycle <= 10 && demoMode; cycle++){
+      $("#transcriptText").textContent = answer; $("#transcriptTr").textContent = ""; $("#transcriptTr").hidden = true;
+      await speak(answer, "gentle elderly grandmother remembering her childhood, a little nostalgic", "Gacrux");
+      const r = await answerTurn({typed: answer}); if (!r) break;
+      await speak(fullQ(), pendingQ.tone);
+      if (r.ready_to_close) break;
+      answer = (await api("/api/demo-answer", {json: {history: S.history, question: pendingQ.e || pendingQ.o}})).answer;
+    }
+  } catch(e){ sayToast(e.message); }
+  demoMode = false;
+}
+
+renderSetup(); setTargets(); renderPhotos(); refreshTokens(); go("setup");
+if (DEMO) runDemo();
+</script>
+</body></html>

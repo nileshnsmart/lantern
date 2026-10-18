@@ -1,1 +1,17 @@
-{"name":"Lantern — Tell me again","short_name":"Lantern","start_url":"/","display":"standalone","background_color":"#F6F4EE","theme_color":"#E8930C","description":"Record a grandparent's story in their own voice and keep it as a storybook or a short film.","icons":[{"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
+{
+ "name": "Lantern \u2014 Tell me again",
+ "short_name": "Lantern",
+ "start_url": "/",
+ "display": "standalone",
+ "background_color": "#fdfaf5",
+ "theme_color": "#fdfaf5",
+ "description": "Record a grandparent's story in their own voice and keep it as a storybook or a short film.",
+ "icons": [
+  {
+   "src": "/lantern-icon.png",
+   "sizes": "256x256",
+   "type": "image/png",
+   "purpose": "any"
+  }
+ ]
+}

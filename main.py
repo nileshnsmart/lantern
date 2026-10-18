@@ -35,6 +35,7 @@ import wave
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from google import genai
 from google.genai import types
 from pydantic import BaseModel
@@ -373,7 +374,7 @@ async def turn(
     if audio is not None:
         data = await audio.read()
         if data:
-            parts.append(types.Part.from_bytes(data=to_mp3(data), mime_type="audio/mpeg"))
+            parts.append(types.Part.from_bytes(data=await run_in_threadpool(to_mp3, data), mime_type="audio/mpeg"))
     skip_note = ("They chose to skip the last question. Mark that gap as unresolved (not unknown forever) "
                  "and ask about something else." if skipped else "")
     parts.append(INTERVIEWER.format(
@@ -384,9 +385,11 @@ async def turn(
             if mode != "family" else "") if listener else ""),
         typed=answer_text, skip_note=skip_note, mode_note=FAMILY_NOTE.format(teller=teller) if mode == "family" else "",
         photo_note="They are looking at the attached photo or object." if has_photo else "No photo was shared."))
-    out = parse_json(ask_text(parts, temperature=0.5, fast=True).text)
-    out["research"] = []
-    return out
+    def work():
+        out = parse_json(ask_text(parts, temperature=0.5, fast=True).text)
+        out["research"] = []
+        return out
+    return await run_in_threadpool(work)
 
 
 RESEARCH = """You are a careful historian supporting a family interview with {teller}.
@@ -412,7 +415,7 @@ class ResearchIn(BaseModel):
 
 
 @app.post("/api/research")
-async def research_step(body: ResearchIn):
+def research_step(body: ResearchIn):
     resp = ask_text([RESEARCH.format(teller=body.teller, memory=json.dumps(body.memory, ensure_ascii=False),
                                      latest=body.latest, research=json.dumps(body.research, ensure_ascii=False))],
                     temperature=0.3, search=True)
@@ -429,7 +432,7 @@ class TranslateIn(BaseModel):
 
 
 @app.post("/api/translate")
-async def translate(body: TranslateIn):
+def translate(body: TranslateIn):
     text = body.text.strip()[:800]
     if not text:
         return {"text": ""}
@@ -486,7 +489,7 @@ class DemoIn(BaseModel):
 
 
 @app.post("/api/demo-answer")
-async def demo_answer(body: DemoIn):
+def demo_answer(body: DemoIn):
     convo = "\n".join(f"Interviewer: {h.get('question_english') or h.get('question_original','')}\n"
                       f"Dadi: {h.get('answer_original','')}" for h in body.history[-8:])
     resp = ask_text([DEMO_BIO + "\n\nConversation so far:\n" + convo +
@@ -526,7 +529,7 @@ Reply with JSON only:
 
 
 @app.post("/api/reconstruct")
-async def reconstruct(body: Interview):
+def reconstruct(body: Interview):
     resp = ask_text([RECONSTRUCT.format(
         teller=body.teller, history=json.dumps(body.history, ensure_ascii=False),
         memory=json.dumps(body.memory, ensure_ascii=False),
@@ -569,7 +572,7 @@ Reply with JSON only:
 
 
 @app.post("/api/plan")
-async def plan(body: PlanIn):
+def plan(body: PlanIn):
     story = json.dumps(body.story, ensure_ascii=False)
     if body.format == "film":
         prompt = PLAN_FILM.format(story=story, shots=max(2, min(body.shots, 4)),
@@ -600,7 +603,7 @@ def make_image(parts, wide=False):
 
 
 @app.post("/api/restore")
-async def restore(body: ImageIn):
+def restore(body: ImageIn):
     if not body.photos:
         raise HTTPException(status_code=400, detail="Add a photo first.")
     return {"image": make_image([b64_part(body.photos[0]),
@@ -609,7 +612,7 @@ async def restore(body: ImageIn):
 
 
 @app.post("/api/illustrate")
-async def illustrate(body: ImageIn):
+def illustrate(body: ImageIn):
     if not body.prompt:
         raise HTTPException(status_code=400, detail="Missing scene description.")
     parts = [b64_part(p) for p in body.photos[:3]]
@@ -630,7 +633,7 @@ class ClipIn(BaseModel):
 
 
 @app.post("/api/clip")
-async def clip(body: ClipIn):
+def clip(body: ClipIn):
     spend("video")
     raw = b64_part(body.image)
     op = video_client.models.generate_videos(
@@ -648,7 +651,7 @@ async def clip(body: ClipIn):
 
 
 @app.get("/api/clip/{job}")
-async def clip_status(job: str):
+def clip_status(job: str):
     item = JOBS.get(job)
     if not item:
         raise HTTPException(status_code=404, detail="Unknown clip. The server may have restarted; start again.")
@@ -687,7 +690,7 @@ def has_audio(path: str) -> bool:
 
 
 @app.post("/api/film")
-async def film(body: FilmIn):
+def film(body: FilmIn):
     missing = [c for c in body.clips if c not in MEDIA]
     if missing or not body.clips:
         raise HTTPException(status_code=400, detail="Some clips are missing; generate them again.")
@@ -752,7 +755,7 @@ async def film(body: FilmIn):
 
 
 @app.get("/api/media/{name}")
-async def media(name: str):
+def media(name: str):
     key = name.removesuffix(".mp4")
     if key not in MEDIA:
         raise HTTPException(status_code=404, detail="Not found. The server may have restarted.")
@@ -814,7 +817,7 @@ class SpeakIn(BaseModel):
 
 
 @app.post("/api/speak")
-async def speak(body: SpeakIn):
+def speak(body: SpeakIn):
     text = body.text.strip()[:600]
     if not text:
         raise HTTPException(status_code=400, detail="Nothing to say.")
@@ -824,7 +827,7 @@ async def speak(body: SpeakIn):
 # ---------- misc ----------
 
 @app.get("/api/usage")
-async def usage():
+def usage():
     led = ledger(CURRENT.get())
     spent = METER.get("spent_inr", 0)
     return {"session": {"limit": SESSION_TOKENS, "spent": led["spent"], "left": SESSION_TOKENS - led["spent"],
@@ -846,7 +849,7 @@ class StoryIn(BaseModel):
 
 
 @app.post("/api/stories")
-async def save_story(body: StoryIn):
+def save_story(body: StoryIn):
     """Save the approved story text (not pictures or video) to Firestore for this session."""
     sid, db = CURRENT.get(), fs()
     if db is None or sid == "anon":
@@ -865,7 +868,7 @@ async def save_story(body: StoryIn):
 
 
 @app.get("/api/stories")
-async def list_stories():
+def list_stories():
     sid, db = CURRENT.get(), fs()
     if db is None or sid == "anon":
         return {"stories": []}

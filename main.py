@@ -138,6 +138,7 @@ Research so far (JSON): {research}
 Previous turns (JSON): {history}
 Newest answer, typed (may be empty; if audio is attached, use the audio instead): {typed}
 {skip_note}
+{mode_note}
 
 Work through the loop below, then reply.
 1. CAPTURE / INTEGRATE. If there is a newest answer, transcribe it EXACTLY as spoken, in its original
@@ -184,6 +185,12 @@ Reply with JSON only:
   "question_original": "...", "question_english": "...", "question_reason": "..."}}"""
 
 
+FAMILY_NOTE = """MODE: a family member is asking the questions in person, not you. The audio is their
+conversation with {teller}. In transcript_original and transcript_english write it as a dialogue with
+speaker labels ("Family:" and "{teller}:"). Only {teller}'s words are memories. In step 5, the question is a
+gentle SUGGESTION the family member may ask next if they want an idea; they decide."""
+
+
 @app.post("/api/turn")
 async def turn(
     teller: str = Form("Nani"),
@@ -193,6 +200,7 @@ async def turn(
     memory: str = Form("{}"),
     answer_text: str = Form(""),
     skipped: bool = Form(False),
+    mode: str = Form("lantern"),
     photo: UploadFile | None = File(None),
     audio: UploadFile | None = File(None),
 ):
@@ -210,7 +218,7 @@ async def turn(
                  "and ask about something else." if skipped else "")
     parts.append(INTERVIEWER.format(
         teller=teller, language=language, history=history, research=research, memory=memory,
-        typed=answer_text, skip_note=skip_note,
+        typed=answer_text, skip_note=skip_note, mode_note=FAMILY_NOTE.format(teller=teller) if mode == "family" else "",
         photo_note="They are looking at the attached photo or object." if has_photo else "No photo was shared."))
     resp = ask_text(parts, temperature=0.5, search=True)
     out = parse_json(resp.text)

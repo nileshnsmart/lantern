@@ -4,279 +4,289 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lantern</title>
-<meta name="description" content="Capture a family memory by voice, research it, review it, and turn it into a storybook or a short film.">
+<meta name="description" content="Record a family story by voice and keep it as a storybook or a short film.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Cpath d='M9 8h16l2 4v12l-2 4H9l-2-4V12z' fill='%23E8930C'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Mukta:wght@400;500;700&family=Tiro+Devanagari+Hindi&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Mukta:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap">
 <style>
 :root{
-  --bg:#F4F3FA; --surface:#FFFFFF; --sunk:#ECEAF6; --ink:#1D1B3A; --muted:#5D5A7C; --line:#DCD9EC;
-  --accent:#E8930C; --accent-ink:#9A5A00; --accent-soft:#FCEBCD; --indigo:#3B3486; --indigo-soft:#E4E1F7;
-  --good:#1F7A4D; --good-soft:#DDF1E6; --warn:#9A6400; --warn-soft:#FFF1D6; --bad:#B3261E;
-  --display:"Young Serif", Georgia, serif; --body:"Mukta","Segoe UI",system-ui,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,monospace; color-scheme:light;
+  --bg:#F6F4EE; --surface:#FFFFFF; --sunk:#EEEBE2; --ink:#1E1B16; --muted:#5E584C; --line:#DDD7C8;
+  --accent:#E8930C; --accent-ink:#8A4F00; --accent-soft:#FCEBCD; --indigo:#3B3486; --indigo-soft:#E6E3F7;
+  --good:#1F7A4D; --good-soft:#DDF1E6; --warn:#8A5A00; --warn-soft:#FFF1D6; --bad:#B3261E; --bad-soft:#FBE3E1;
+  --display:"Young Serif", Georgia, serif; --body:"Mukta","Segoe UI",system-ui,sans-serif; color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root{
-  --bg:#12111F; --surface:#1C1A31; --sunk:#16152A; --ink:#EEEDF8; --muted:#A7A4C4; --line:#2F2C4C;
-  --accent:#F2A93B; --accent-ink:#F6C06E; --accent-soft:#3A2A12; --indigo:#AEA7F2; --indigo-soft:#2A2650;
-  --good:#5FCB93; --good-soft:#163527; --warn:#F2C46B; --warn-soft:#3A2E12; --bad:#F28B82; color-scheme:dark}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14120F; --surface:#1F1C17; --sunk:#191612; --ink:#F2EEE6; --muted:#B5AD9C; --line:#3A352C;
+  --accent:#F2A93B; --accent-ink:#F6C06E; --accent-soft:#3A2A12; --indigo:#B3ACF4; --indigo-soft:#2A2650;
+  --good:#5FCB93; --good-soft:#163527; --warn:#F2C46B; --warn-soft:#3A2E12; --bad:#F28B82; --bad-soft:#3D1D1A; color-scheme:dark}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
-  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px 48px}
-h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:20px;line-height:1.5;
+  padding:16px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px))}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;line-height:1.25}
+h1{font-size:32px} h2{font-size:28px} h3{font-size:22px}
+p{margin:0}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.app{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-header{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
-.brand{display:flex;gap:10px;align-items:center}
-.brand h1{font-size:28px}
-.brand small{display:block;color:var(--muted);font-size:13px;margin-top:-4px}
-.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;list-style:none;margin:0;padding:0}
-.steps li{font-size:12px;text-align:center;color:var(--muted);padding-top:6px;border-top:3px solid var(--line)}
-.steps li.on{color:var(--ink);font-weight:700;border-color:var(--accent)}
-.steps li.done{border-color:var(--good)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
-.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
+:focus-visible{outline:4px solid var(--accent);outline-offset:3px}
+.app{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.brand{display:flex;gap:10px;align-items:center;background:none;border:0;padding:0}
+.brand b{font-family:var(--display);font-weight:400;font-size:28px}
+.nav{display:flex;gap:8px}
+.view{display:flex;flex-direction:column;gap:20px}
 .muted{color:var(--muted)}
-.small{font-size:14px}
-label.field{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
-input[type=text],select,textarea{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);color:var(--ink);width:100%}
-textarea{min-height:64px;resize:vertical}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:460px){.grid2{grid-template-columns:1fr}}
-.btn{border:0;border-radius:999px;padding:12px 18px;font-weight:700;background:var(--accent);color:#2A1700}
-.btn.ghost{background:none;border:1px solid var(--line);color:var(--ink);font-weight:500}
+.small{font-size:16px}
+.big{font-size:22px}
+/* buttons: large, high-contrast, one main action per screen */
+.btn{border:0;border-radius:18px;min-height:64px;padding:14px 22px;font-weight:700;font-size:21px;background:var(--accent);color:#231300;
+  display:flex;align-items:center;justify-content:center;gap:10px;width:100%;text-align:center;text-decoration:none}
 .btn.dark{background:var(--ink);color:var(--surface)}
-.btn.sm{padding:6px 12px;font-size:14px}
-.btn:disabled{opacity:.5;cursor:default}
-.cost{font-family:var(--mono);font-size:12px;color:var(--accent-ink)}
-.err{color:var(--bad);font-size:14px}
-.pick{position:relative;border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--muted);cursor:pointer;display:block}
-.pick input{position:absolute;opacity:0;width:1px;height:1px}
-.thumbs{display:flex;gap:8px;flex-wrap:wrap}
-.thumbs figure{margin:0;position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;background:var(--sunk)}
+.btn.soft{background:var(--surface);color:var(--ink);border:2px solid var(--line);font-weight:500}
+.btn.sm{min-height:48px;font-size:17px;padding:8px 16px;border-radius:14px;width:auto}
+.btn:disabled{opacity:.45;cursor:default}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:440px){.pair{grid-template-columns:1fr}}
+.choice{border:2px solid var(--line);background:var(--surface);border-radius:22px;padding:22px 18px;display:flex;flex-direction:column;
+  align-items:flex-start;gap:6px;text-align:left;width:100%}
+.choice:hover{border-color:var(--accent)}
+.choice .ico{font-size:40px;line-height:1}
+.choice b{font-size:23px}
+.choice span{color:var(--muted);font-size:17px}
+label.field{display:flex;flex-direction:column;gap:6px;font-size:18px;font-weight:500}
+input[type=text],select,textarea{border:2px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--surface);color:var(--ink);width:100%;font-size:20px}
+textarea{min-height:90px;resize:vertical}
+.links{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.link{background:none;border:0;padding:8px 2px;color:var(--indigo);font-size:18px;text-decoration:underline;text-underline-offset:4px}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap}
+.thumbs figure{margin:0;position:relative;width:96px;height:96px;border-radius:12px;overflow:hidden;background:var(--sunk)}
 .thumbs img{width:100%;height:100%;object-fit:cover}
-.thumbs button{position:absolute;top:2px;right:2px;border:0;border-radius:50%;width:22px;height:22px;background:rgba(0,0,0,.6);color:#fff;font-size:13px;line-height:1}
-/* interview */
-.split{display:grid;grid-template-columns:1fr;gap:14px}
-.chat{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto;padding-right:4px}
-.msg{max-width:90%;padding:10px 12px;border-radius:14px}
-.msg .o{font-size:17px;line-height:1.55}
-.msg .e{font-size:13px;color:var(--muted);margin-top:2px}
-.msg .who{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.msg.ai{background:var(--indigo-soft);align-self:flex-start;border-bottom-left-radius:4px}
-.msg.me{background:var(--accent-soft);align-self:flex-end;border-bottom-right-radius:4px}
-.rec{width:84px;height:84px;border-radius:50%;border:0;background:var(--bad);color:#fff;font-weight:700;display:grid;place-items:center;margin:0 auto;box-shadow:0 0 0 0 rgba(179,38,30,.5)}
-.rec.on{animation:pulse 1.4s infinite}
-@keyframes pulse{70%{box-shadow:0 0 0 18px rgba(179,38,30,0)}100%{box-shadow:0 0 0 0 rgba(179,38,30,0)}}
-.status{text-align:center;font-size:14px;color:var(--muted);min-height:1.5em}
-.research{background:var(--sunk);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
-.research ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
-.research a,.src a{color:var(--indigo);font-size:12px;word-break:break-word}
-.nb{display:flex;flex-direction:column;gap:10px}
-.nb details{background:var(--sunk);border-radius:12px;padding:8px 12px}
-.nb summary{cursor:pointer;font-weight:700;font-size:14px}
-.nb ul{margin:6px 0 2px;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
-.nb a{color:var(--indigo);font-size:12px;word-break:break-word}
-.layer{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.cert{font-size:11px;padding:1px 6px;border-radius:999px;background:var(--indigo-soft);color:var(--indigo)}
-.ready{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:13px;color:var(--muted)}
-.ready span::before{content:"○ ";color:var(--line)}
-.ready span.ok{color:var(--ink)}.ready span.ok::before{content:"● ";color:var(--good)}
-.reason{font-size:12px;color:var(--muted);font-style:italic;margin-top:4px}
-.closing{background:var(--good-soft);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
-.check{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:8px 10px;font-size:14px}
+.thumbs button{position:absolute;top:4px;right:4px;border:0;border-radius:50%;width:30px;height:30px;background:rgba(0,0,0,.65);color:#fff;font-size:18px;line-height:1}
+.err{background:var(--bad-soft);color:var(--bad);border-radius:14px;padding:12px 14px;font-size:18px}
+.note{background:var(--sunk);border-radius:14px;padding:12px 14px;font-size:17px;color:var(--muted)}
+/* talking */
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:6px;align-items:center;font-size:16px;color:var(--muted)}
+.dots i{width:14px;height:14px;border-radius:50%;background:var(--line);display:inline-block}
+.dots i.on{background:var(--good)}
+.qcard{background:var(--indigo-soft);border-radius:24px;padding:24px 22px;display:flex;flex-direction:column;gap:10px}
+.qcard .q{font-family:var(--display);font-size:28px;line-height:1.3}
+.qcard .qe{font-size:18px;color:var(--muted)}
+.mic{width:180px;height:180px;border-radius:50%;border:0;margin:6px auto 0;background:var(--bad);color:#fff;font-weight:700;font-size:22px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 0 0 rgba(179,38,30,.5)}
+.mic svg{width:54px;height:54px}
+.mic.on{animation:pulse 1.4s infinite}
+.mic.busy{background:var(--muted)}
+@keyframes pulse{70%{box-shadow:0 0 0 26px rgba(179,38,30,0)}100%{box-shadow:0 0 0 0 rgba(179,38,30,0)}}
+.status{text-align:center;font-size:20px;min-height:1.5em}
+.said{border-left:4px solid var(--accent);padding:4px 0 4px 14px;font-size:18px}
+.said .who{font-size:15px;color:var(--muted)}
+.ready{background:var(--good-soft);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.idea{background:var(--accent-soft);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:6px}
+.timer{font-variant-numeric:tabular-nums;font-size:44px;text-align:center;font-family:var(--display)}
+.recdot{display:flex;align-items:center;justify-content:center;gap:10px;font-size:20px}
+.recdot i{width:16px;height:16px;border-radius:50%;background:var(--bad);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+.demo{background:var(--indigo-soft);border-radius:14px;padding:8px 14px;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 /* review */
-.seg{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.seg{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:8px}
 .seg.fact{background:var(--good-soft);border-color:transparent}
 .seg.uncertain{background:var(--warn-soft);border-color:transparent}
-.badge{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--indigo-soft);color:var(--indigo)}
-.seg.fact .badge{background:var(--good);color:var(--surface)}
-.seg.uncertain .badge{background:var(--warn);color:var(--surface)}
-.seg textarea{min-height:52px;background:var(--surface)}
-.legend{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
-/* create */
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:460px){.choices{grid-template-columns:1fr}}
-.choice{border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
-.choice h3{font-size:19px}
-.prog{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.prog li{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:15px}
-.prog li::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex:none}
+.tag{font-size:15px;font-weight:700;color:var(--muted)}
+.seg .o{font-size:21px}
+.seg .e{font-size:17px;color:var(--muted)}
+.seg .acts{display:flex;gap:8px}
+/* progress */
+.prog{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.prog li{display:flex;gap:12px;align-items:center;padding:12px 14px;border:2px solid var(--line);border-radius:14px;color:var(--muted);font-size:19px}
+.prog li::before{content:"";width:18px;height:18px;border-radius:50%;border:3px solid var(--line);flex:none}
 .prog li.on{color:var(--ink);border-color:var(--accent)}
 .prog li.on::before{border-color:var(--accent);border-top-color:transparent;animation:spin .8s linear infinite}
-.prog li.done{color:var(--ink)}
-.prog li.done::before{background:var(--good);border-color:var(--good)}
+.prog li.done{color:var(--ink)} .prog li.done::before{background:var(--good);border-color:var(--good)}
 .prog li.fail::before{background:var(--bad);border-color:var(--bad)}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* outputs */
-.book{display:flex;flex-direction:column;gap:14px}
-.book .cover{border-radius:14px;overflow:hidden;background:var(--sunk)}
-.book .cover img{display:block;width:100%;max-height:420px;object-fit:cover}
+/* storybook */
+.book{display:flex;flex-direction:column;gap:16px;background:var(--surface);border-radius:20px;padding:20px}
+.book .cover img{display:block;width:100%;max-height:440px;object-fit:cover;border-radius:14px}
 .book figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
 .book figure img{display:block;width:100%}
-.book figcaption{padding:8px 12px;font-size:14px;background:var(--surface)}
-.mem .o{font-size:19px;line-height:1.6}
-.mem .e{font-size:15px;color:var(--muted)}
-.mem{border-left:3px solid var(--accent);padding-left:14px}
-.factbox{background:var(--good-soft);border-radius:12px;padding:10px 12px;font-size:15px}
-.uncbox{background:var(--warn-soft);border-radius:12px;padding:10px 12px;font-size:15px}
-.tabs{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px}
-.tabs button{border:0;background:none;padding:5px 12px;border-radius:999px;font-size:13px;color:var(--muted)}
-.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
-.reel{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-.reel figure{margin:0;border-radius:10px;overflow:hidden;background:var(--sunk);font-size:12px}
-.reel img,.reel video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
-.reel figcaption{padding:4px 8px;color:var(--muted)}
-video.film{width:100%;border-radius:14px;display:block;background:#000}
+.book figcaption{padding:8px 12px;font-size:16px}
+.mem{border-left:4px solid var(--accent);padding-left:14px}
+.mem .o{font-size:21px;line-height:1.6}
+.mem .e{font-size:17px;color:var(--muted)}
+.factbox{background:var(--good-soft);border-radius:14px;padding:12px 14px;font-size:17px}
+.uncbox{background:var(--warn-soft);border-radius:14px;padding:12px 14px;font-size:17px}
+.src a,.det a{color:var(--indigo);font-size:14px;word-break:break-word}
+video.film{width:100%;border-radius:16px;display:block;background:#000}
 /* collection */
-.item{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:14px}
-.item img{width:64px;height:64px;border-radius:10px;object-fit:cover;background:var(--sunk);flex:none}
+.item{display:flex;gap:14px;align-items:center;padding:12px;border:2px solid var(--line);border-radius:18px;background:var(--surface);text-align:left;width:100%}
+.item img{width:76px;height:76px;border-radius:12px;object-fit:cover;background:var(--sunk);flex:none}
 .item div{flex:1;min-width:0}
-.item b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-footer{font-size:12px;color:var(--muted);text-align:center}
+.item b{display:block;font-size:20px}
+/* details (for the family helper) */
+.det{display:flex;flex-direction:column;gap:12px;font-size:17px}
+.det details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.det summary{cursor:pointer;font-weight:700}
+.det ul{margin:8px 0 4px;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.det .lay{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.det .ok::before{content:"✓ ";color:var(--good);font-weight:700}
+.det .no::before{content:"○ ";color:var(--muted)}
+footer{font-size:15px;color:var(--muted);text-align:center}
+/* PDF render target */
+#pdfRoot{position:fixed;left:-10000px;top:0;width:760px;background:#fff;color:#1E1B16;font-size:18px}
+#pdfRoot .book{background:#fff;--surface:#fff;--ink:#1E1B16;--muted:#5E584C;--line:#DDD7C8;--good-soft:#DDF1E6;--warn-soft:#FFF1D6;--accent:#E8930C;--indigo:#3B3486}
+#pdfRoot figure,#pdfRoot .factbox,#pdfRoot .uncbox,#pdfRoot .mem{break-inside:avoid;page-break-inside:avoid}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="brand">
-      <svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true"><rect x="14" y="2" width="6" height="4" rx="1" fill="var(--muted)"/><path d="M9 8h16l2 4v12l-2 4H9l-2-4V12z" fill="var(--accent)"/><path d="M12 12h10v12H12z" fill="var(--accent-soft)" opacity=".7"/><rect x="11" y="28" width="12" height="3" rx="1" fill="var(--muted)"/></svg>
-      <div><h1>Lantern</h1><small>Tell me again.</small></div>
+    <button class="brand" id="home" aria-label="Lantern home">
+      <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="14" y="2" width="6" height="4" rx="1" fill="var(--muted)"/><path d="M9 8h16l2 4v12l-2 4H9l-2-4V12z" fill="var(--accent)"/><path d="M12 12h10v12H12z" fill="var(--accent-soft)" opacity=".7"/><rect x="11" y="28" width="12" height="3" rx="1" fill="var(--muted)"/></svg>
+      <b>Lantern</b>
+    </button>
+    <div class="nav">
+      <button class="btn soft sm" id="navStories">📚 My stories</button>
+      <button class="btn soft sm" id="navDetails" hidden>Details</button>
     </div>
-    <button class="btn ghost sm" id="openCollection">Family collection</button>
   </header>
-  <ol class="steps" id="stepbar">
-    <li data-s="1">Capture</li><li data-s="2">Interview</li><li data-s="3">Review</li><li data-s="4">Create</li><li data-s="5">Keep</li>
-  </ol>
 
-  <!-- 1 CAPTURE -->
-  <section class="card" id="v1">
-    <div><div class="eyebrow">1 · Capture a memory</div><h2 style="font-size:24px">Let them tell it in their own voice</h2></div>
-    <p class="muted" style="margin:0">Lantern listens, researches the places and dates as they talk, and asks the next question. A photo or object is optional, but it helps memories come back.</p>
-    <div class="grid2">
-      <label class="field">Who is sharing the memory?<input type="text" id="teller" value="Nani"></label>
-      <label class="field">Their language
-        <select id="language">
-          <option value="auto">Detect automatically</option>
-          <option>Hindi</option><option>Bengali</option><option>Tamil</option><option>Telugu</option><option>Marathi</option>
-          <option>Gujarati</option><option>Punjabi</option><option>Urdu</option><option>Mandarin Chinese</option><option>Cantonese</option>
-          <option>Japanese</option><option>Korean</option><option>Tagalog</option><option>Bahasa Indonesia</option>
-          <option>Thai</option><option>Vietnamese</option><option>English</option>
-        </select>
-      </label>
+  <!-- HOME -->
+  <section class="view" id="vHome">
+    <div><h1>Record a family story</h1><p class="muted big" style="margin-top:6px">In their own voice and language.</p></div>
+    <label class="field">Who is telling the story?<input type="text" id="teller" placeholder="Nani, Dadu, Grandpa…" autocomplete="off"></label>
+    <div class="field" style="gap:10px"><span style="font-size:18px;font-weight:500">Who will ask the questions?</span>
+      <div class="pair">
+        <button class="choice" id="startLantern"><span class="ico">🏮</span><b>Lantern asks</b><span>Lantern asks one question at a time, out loud.</span></button>
+        <button class="choice" id="startFamily"><span class="ico">👪</span><b>I will ask</b><span>Lantern just records your conversation.</span></button>
+      </div>
     </div>
-    <label class="pick" for="photoInput"><input type="file" id="photoInput" accept="image/*" multiple>
-      <b>Add old photos or a meaningful object (optional)</b><br><span class="small">Up to 6 photos. They stay with this story.</span></label>
+    <div class="links">
+      <label class="link" for="photoInput" style="cursor:pointer">📷 Add an old photo (optional)<input type="file" id="photoInput" accept="image/*" multiple hidden></label>
+      <button class="link" id="langLink">🌐 Language: <span id="langName">detect automatically</span></button>
+    </div>
+    <select id="language" hidden aria-label="Language">
+      <option value="auto">Detect automatically</option>
+      <option>Hindi</option><option>Bengali</option><option>Tamil</option><option>Telugu</option><option>Marathi</option>
+      <option>Gujarati</option><option>Punjabi</option><option>Urdu</option><option>Mandarin Chinese</option><option>Cantonese</option>
+      <option>Japanese</option><option>Korean</option><option>Tagalog</option><option>Bahasa Indonesia</option>
+      <option>Thai</option><option>Vietnamese</option><option>English</option>
+    </select>
     <div class="thumbs" id="thumbs"></div>
-    <label class="row small" style="align-items:flex-start;gap:8px"><input type="checkbox" id="consent" style="margin-top:5px"><span>I asked permission. They are happy to be recorded and for this story to be kept for the family.</span></label>
-    <button class="btn" id="begin" disabled>Begin the interview</button>
-    <div class="closing" style="background:var(--indigo-soft)">
-      <b>Watch the interview loop work</b>
-      <span class="small">A fictional grandmother tells a family story set during the 1947 Partition of India. Lantern researches, finds gaps and asks; she answers; it repeats until the Story Readiness Check says the story is complete. The history is real; the family is fictional. <span class="cost">about ₹35</span></span>
-      <div class="row"><button class="btn sm" id="demoPartition">Play the Partition demo</button>
-      <button class="btn ghost sm" id="example">Or start from a single memory: leaving Guangzhou in wartime</button></div>
-    </div>
-    <div class="err" id="e1" hidden></div>
+    <div class="err" id="eHome" hidden></div>
+    <p class="muted small">Please ask their permission before you record.</p>
+    <button class="btn soft sm" id="demoStart" hidden>▶ Play the Partition demo (fictional storyteller)</button>
   </section>
 
-  <!-- 2 INTERVIEW -->
-  <section class="card" id="v2" hidden>
-    <div class="row" style="justify-content:space-between"><div><div class="eyebrow">2 · Research &amp; interview</div><h2 style="font-size:22px" id="ivTitle">Talking with Nani</h2></div><span class="cost" id="turnCount"></span></div>
-    <div class="closing" id="demoBar" hidden style="background:var(--indigo-soft)"><div class="row" style="justify-content:space-between"><b id="demoCycle">Demo · cycle 1</b><button class="btn ghost sm" id="demoPause">Pause</button></div>
-      <span class="small">Fictional storyteller for demonstration. Real historical research. Each cycle: integrate answer → research → find gaps → readiness check → one question.</span></div>
-    <div class="chat" id="chat" aria-live="polite"></div>
-    <button class="rec" id="rec" aria-label="Start recording">Record</button>
-    <div class="status" id="recStatus">Tap Record, let them talk, tap Stop when they finish.</div>
-    <details><summary class="muted small" style="cursor:pointer">No microphone? Type the answer instead</summary>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><textarea id="typed" placeholder="Type what they said, in any language"></textarea><button class="btn ghost" id="sendTyped">Send answer</button></div>
-    </details>
-    <div class="row"><button class="btn ghost sm" id="skipQ" disabled>Skip this question</button><span class="muted small">They can skip anything, or stop at any time.</span></div>
-    <div class="closing" id="closing" hidden><b>Lantern thinks there's enough for a story.</b><span class="small">Add anything else, or review what's been collected.</span>
-      <div class="row"><button class="btn sm" id="closeReview">Review the story</button><button class="btn ghost sm" id="keepGoing">Keep talking</button></div></div>
-    <div class="nb" id="notebook" hidden>
-      <div class="eyebrow">Lantern's notebook · updated after every answer</div>
-      <details open><summary>Story readiness</summary><div class="ready" id="nbReady"></div></details>
-      <details open><summary>Timeline</summary><ul id="nbTimeline"></ul></details>
-      <details><summary>People and places</summary><ul id="nbPeople"></ul></details>
-      <details open><summary>Still missing</summary><ul id="nbGaps"></ul></details>
-      <details><summary>Historical research</summary><ul id="nbResearch"></ul></details>
+  <!-- LANTERN ASKS -->
+  <section class="view" id="vTalk" hidden>
+    <div class="demo" id="demoBar" hidden><span id="demoText">Demo</span><button class="btn soft sm" id="demoPause">Pause</button></div>
+    <div class="top"><b class="big" id="talkTitle">Talking with Nani</b><div class="dots" id="dots1"></div></div>
+    <div class="qcard"><div class="q" id="qText">What memory would you like to share?</div><div class="qe" id="qEng" hidden></div>
+      <button class="btn soft sm" id="hearQ" style="align-self:flex-start">🔊 Hear the question</button></div>
+    <button class="mic" id="mic"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg><span id="micLabel">Tap to answer</span></button>
+    <div class="status" id="talkStatus"></div>
+    <div class="err" id="eTalk" hidden></div>
+    <div class="said" id="lastSaid" hidden></div>
+    <div class="ready" id="readyBox" hidden>
+      <b class="big">I think we have enough details to turn this into a story.</b>
+      <span>Would you like to add anything else, or review what we've collected?</span>
+      <div class="pair"><button class="btn" id="readyReview">Review the story</button><button class="btn soft" id="readyMore">Keep talking</button></div>
     </div>
-    <div class="row"><button class="btn dark" id="toReview" disabled>Stop and review the story</button><span class="cost">about ₹1</span></div>
-    <div class="err" id="e2" hidden></div>
+    <div class="pair"><button class="btn soft" id="skipQ">Skip this question</button><button class="btn dark" id="finishTalk">Finish the story</button></div>
+    <button class="link" id="typeLink" style="align-self:center">⌨ Type the answer instead</button>
+    <div id="typeBox" hidden style="display:flex;flex-direction:column;gap:10px"><textarea id="typed" placeholder="Type what they said, in any language"></textarea><button class="btn soft" id="sendTyped">Send answer</button></div>
   </section>
 
-  <!-- 3 REVIEW -->
-  <section class="card" id="v3" hidden>
-    <div><div class="eyebrow">3 · Reconstruct &amp; review</div><h2 style="font-size:22px">Check the story before anything is made</h2></div>
-    <p class="muted small" style="margin:0">Edit any line, remove what's wrong, add what was missed. Nothing is generated until you approve.</p>
-    <div class="legend"><span class="badge">Memory</span> their own words <span class="badge" style="background:var(--good);color:var(--surface)">Fact</span> checked with sources <span class="badge" style="background:var(--warn);color:var(--surface)">Uncertain</span> unclear or doesn't line up</div>
+  <!-- FAMILY ASKS -->
+  <section class="view" id="vFamily" hidden>
+    <div class="top"><b class="big" id="famTitle">Recording with Nani</b><div class="dots" id="dots2"></div></div>
+    <div class="qcard" style="background:var(--bad-soft);align-items:center;text-align:center">
+      <div class="recdot" id="famRec"><i></i><span id="famState">Recording your conversation</span></div>
+      <div class="timer" id="famTimer">0:00</div>
+      <span class="muted small">Ask your own questions. Lantern listens and keeps notes.</span>
+    </div>
+    <div class="err" id="eFam" hidden></div>
+    <div class="idea" id="ideaBox" hidden><span class="tag">💡 You could ask</span><b class="big" id="ideaText"></b><span class="muted small" id="ideaEng"></span></div>
+    <div class="status" id="famStatus"></div>
+    <div class="pair"><button class="btn soft" id="famPause">⏸ Pause</button><button class="btn soft" id="famIdea">💡 Give me a question idea</button></div>
+    <button class="btn dark" id="famFinish">We're finished</button>
+  </section>
+
+  <!-- REVIEW -->
+  <section class="view" id="vReview" hidden>
+    <div><h2>Is this the story?</h2><p class="muted" style="margin-top:6px">Change or remove anything that isn't right. Nothing is made until you say so.</p></div>
     <label class="field">Title<input type="text" id="storyTitle"></label>
-    <div id="segments" style="display:flex;flex-direction:column;gap:10px"></div>
-    <button class="btn ghost sm" id="addSeg" style="align-self:flex-start">+ Add a memory line</button>
-    <button class="btn" id="approve">Approve this story</button>
-    <div class="err" id="e3" hidden></div>
+    <div id="segments" style="display:flex;flex-direction:column;gap:12px"></div>
+    <button class="btn soft sm" id="addSeg" style="align-self:flex-start">+ Add something they said</button>
+    <div class="err" id="eReview" hidden></div>
+    <button class="btn" id="approve">Yes, this is the story</button>
   </section>
 
-  <!-- 4 CREATE -->
-  <section class="card" id="v4" hidden>
-    <div><div class="eyebrow">4 · Choose what to make</div><h2 style="font-size:22px">Same story, two ways to keep it</h2></div>
-    <p class="muted small" style="margin:0">Make one now and the other later. The interview never has to be repeated.</p>
-    <div class="choices">
-      <div class="choice"><h3>Storybook</h3><p class="muted small" style="margin:0">Their words with translation, restored photo, three illustrations, history with citations.</p>
-        <button class="btn" id="makeBook">Make the storybook</button><span class="cost">about ₹15</span></div>
-      <div class="choice"><h3>Short film</h3><p class="muted small" style="margin:0">A storyboard of 8-second clips. Each clip starts from the last frame of the one before, then they're joined into one film.</p>
-        <label class="field">Length<select id="shots"><option value="2">2 clips · 16 s · about ₹140</option><option value="3" selected>3 clips · 24 s · about ₹210</option><option value="4">4 clips · 32 s · about ₹280</option></select></label>
-        <label class="pick" for="filmPhotos" style="padding:10px"><input type="file" id="filmPhotos" accept="image/*" multiple><span class="small"><b>Add more photos for the film</b> (optional)</span></label>
-        <button class="btn" id="makeFilm">Make the short film</button></div>
+  <!-- MAKE -->
+  <section class="view" id="vMake" hidden>
+    <div id="makeHead"><h2>How would you like to keep it?</h2><p class="muted" style="margin-top:6px">You can make the other one later.</p></div>
+    <div class="pair" id="makeChoices">
+      <button class="choice" id="makeBook"><span class="ico">📖</span><b>Storybook</b><span>Their words, pictures and history. Save as PDF.</span></button>
+      <button class="choice" id="makeFilm"><span class="ico">🎬</span><b>Short film</b><span>A short video of the story. Save as MP4.</span></button>
     </div>
+    <label class="field small" id="lenRow" style="font-size:16px">Film length
+      <select id="shots"><option value="2">16 seconds</option><option value="3" selected>24 seconds</option><option value="4">32 seconds</option></select></label>
     <ul class="prog" id="prog" hidden></ul>
-    <div class="err" id="e4" hidden></div>
-    <div id="outTabs" class="row" hidden><div class="tabs"><button id="tabBook" aria-pressed="true">Storybook</button><button id="tabFilm" aria-pressed="false">Short film</button></div></div>
-    <div id="bookOut" class="book" hidden></div>
-    <div id="filmOut" hidden style="display:flex;flex-direction:column;gap:10px"></div>
-    <div class="row" id="keepRow" hidden><button class="btn dark" id="keep">Save to family collection</button></div>
+    <div class="err" id="eMake" hidden></div>
+    <div id="result" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   </section>
 
-  <!-- 5 KEEP -->
-  <section class="card" id="v5" hidden>
-    <div><div class="eyebrow">5 · Preserve &amp; share</div><h2 style="font-size:22px">Family collection</h2></div>
-    <p class="muted small" style="margin:0">Each story keeps the original recordings, the approved narrative, and the storybook or film. Saved on this device.</p>
-    <div id="collection" style="display:flex;flex-direction:column;gap:10px"></div>
-    <div id="detail" style="display:flex;flex-direction:column;gap:10px" hidden></div>
-    <button class="btn ghost" id="startNew">Capture a new memory</button>
+  <!-- MY STORIES -->
+  <section class="view" id="vStories" hidden>
+    <div><h2>My stories</h2><p class="muted" style="margin-top:6px">Saved on this device.</p></div>
+    <div id="collection" style="display:flex;flex-direction:column;gap:12px"></div>
+    <div id="itemView" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+    <button class="btn" id="newStory">🎙 Record a new story</button>
   </section>
 
-  <footer>Lantern restores and retells. It keeps their words, never clones a voice, and never animates a real face.</footer>
+  <!-- DETAILS (for the family helper) -->
+  <section class="view" id="vDetails" hidden>
+    <div class="top"><h2>Details</h2><button class="btn soft sm" id="detBack">← Back</button></div>
+    <p class="muted small">What Lantern has gathered so far. This page is for the family helper; the storyteller never needs it.</p>
+    <div class="det" id="det"></div>
+  </section>
+
+  <footer>Lantern keeps their own words. It never copies a voice or animates a real face.</footer>
 </div>
+<div id="pdfRoot" aria-hidden="true"></div>
 
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const S = { id: null, photos: [], history: [], research: [], memory: {}, gaps: [], readiness: {}, clips: [], story: null, approved: null,
-            book: null, film: null, lang: "auto" };
+const S = { id: null, mode: "lantern", photos: [], history: [], research: [], memory: {}, gaps: [], readiness: {}, checks: [],
+            reasons: [], clips: [], story: null, approved: null, book: null, film: null, lang: "auto", idea: null };
+const DEMO = new URLSearchParams(location.search).has("demo");
 
-/* ---------- navigation ---------- */
-function show(n){
-  for (let i = 1; i <= 5; i++) $("#v"+i).hidden = i !== n;
-  document.querySelectorAll("#stepbar li").forEach(li => { const s = +li.dataset.s;
-    li.className = s === n ? "on" : (s < n ? "done" : ""); });
-  window.scrollTo(0, 0);
+/* ---------- navigation: one screen at a time ---------- */
+const VIEWS = ["Home","Talk","Family","Review","Make","Stories","Details"];
+let current = "Home", before = "Home";
+function show(v){
+  if (v !== "Details") before = v;
+  VIEWS.forEach(n => $("#v" + n).hidden = n !== v);
+  current = v;
+  $("#navDetails").hidden = !(S.history.length || S.research.length) || v === "Details";
+  window.scrollTo({top: 0});
 }
-const err = (n, m) => { const el = $("#e"+n); el.textContent = m || ""; el.hidden = !m; };
+const err = (id, m) => { const el = $("#" + id); el.textContent = m || ""; el.hidden = !m; };
 async function api(path, opts = {}){
   if (opts.json){ opts.method = "POST"; opts.headers = {"Content-Type":"application/json"}; opts.body = JSON.stringify(opts.json); }
   const r = await fetch(path, opts); let d = {};
   try { d = await r.json(); } catch(e) {}
-  if (!r.ok) throw new Error(d.error || d.detail || ("Request failed (" + r.status + ")"));
+  if (!r.ok) throw new Error(d.error || d.detail || ("Something went wrong (" + r.status + "). Please try again."));
   return d;
 }
+const teller = () => $("#teller").value.trim() || "Nani";
+const lang = () => $("#language").value === "auto" ? S.lang : $("#language").value;
 
-/* ---------- 1 capture ---------- */
+/* ---------- home ---------- */
 function shrink(file, max = 1024){
   return new Promise((res, rej) => { const img = new Image();
     img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height));
@@ -290,145 +300,244 @@ function renderThumbs(){
   $("#thumbs").innerHTML = S.photos.map((p,i) => `<figure><img src="${p}" alt="Photo ${i+1}"><button data-i="${i}" aria-label="Remove photo">×</button></figure>`).join("");
   $("#thumbs").querySelectorAll("button").forEach(b => b.onclick = () => { S.photos.splice(+b.dataset.i, 1); renderThumbs(); });
 }
-async function addPhotos(files){ for (const f of [...files].slice(0, 6 - S.photos.length)) S.photos.push(await shrink(f)); renderThumbs(); }
-$("#photoInput").onchange = e => addPhotos(e.target.files);
-$("#filmPhotos").onchange = e => addPhotos(e.target.files);
-$("#consent").onchange = () => $("#begin").disabled = !$("#consent").checked;
+$("#photoInput").onchange = async e => { for (const f of [...e.target.files].slice(0, 6 - S.photos.length)) S.photos.push(await shrink(f)); renderThumbs(); };
+$("#langLink").onclick = () => { const s = $("#language"); s.hidden = !s.hidden; if (!s.hidden) s.focus(); };
+$("#language").onchange = () => { $("#langName").textContent = $("#language").value === "auto" ? "detect automatically" : $("#language").value; $("#language").hidden = true; };
+$("#demoStart").hidden = !DEMO;
 
-/* ---------- 2 research & interview ---------- */
-const LANG_CODES = {"Hindi":"hi-IN","Bengali":"bn-IN","Tamil":"ta-IN","Telugu":"te-IN","Marathi":"mr-IN","Gujarati":"gu-IN","Punjabi":"pa-IN","Urdu":"ur-IN","Mandarin Chinese":"zh-CN","Cantonese":"zh-HK","Japanese":"ja-JP","Korean":"ko-KR","Tagalog":"fil-PH","Bahasa Indonesia":"id-ID","Thai":"th-TH","Vietnamese":"vi-VN","English":"en-IN"};
-function speak(text, lang){ try { if (!("speechSynthesis" in window) || !text) return; speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text); if (LANG_CODES[lang]) u.lang = LANG_CODES[lang]; u.rate = .92; speechSynthesis.speak(u); } catch(e) {} }
-const teller = () => $("#teller").value.trim() || "Nani";
-function addMsg(kind, o, e){
-  const d = document.createElement("div"); d.className = "msg " + kind;
-  d.innerHTML = `<div class="who">${kind === "ai" ? "Lantern" : esc(teller())}</div><div class="o">${esc(o)}</div>${e && e !== o ? `<div class="e">${esc(e)}</div>` : ""}`;
-  $("#chat").appendChild(d); d.scrollIntoView({block:"nearest", behavior:"smooth"});
+/* ---------- microphone: asked once, kept open for the whole conversation ---------- */
+let stream = null;
+async function getMic(errBox){
+  if (stream && stream.active) return stream;
+  if (!navigator.mediaDevices?.getUserMedia){ err(errBox, "This browser can't record. Please open Lantern in Chrome or Safari."); return null; }
+  try { stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true}}); return stream; }
+  catch(e){
+    err(errBox, e.name === "NotAllowedError"
+      ? "The microphone is blocked. Tap the 🔒 lock next to the web address, set Microphone to Allow, then tap the button again."
+      : "No microphone was found. Check that one is connected, or type the answer instead.");
+    return null;
+  }
 }
-function addCheck(note){ const d = document.createElement("div"); d.className = "check";
-  d.textContent = "Gently checking: " + note; $("#chat").appendChild(d); }
-const READY = {timeline: "Core timeline", people_places: "People and places", history: "Historical context",
-  gaps: "Major gaps addressed", substance: "Enough for a story", uncertainty: "Uncertainty documented"};
-const srcLinks = l => (l||[]).length ? "<br>" + l.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(" · ") : "";
-function renderNotebook(){
-  $("#notebook").hidden = false;
-  $("#nbReady").innerHTML = Object.entries(READY).map(([k, v]) => `<span class="${S.readiness[k] ? "ok" : ""}">${v}</span>`).join("");
-  const m = S.memory || {};
-  $("#nbTimeline").innerHTML = (m.timeline||[]).map(t => `<li><b>${esc(t.when || "When?")}</b> ${esc(t.what)} <span class="cert">${esc(t.certainty||"")}</span></li>`).join("") || '<li class="muted">Nothing yet</li>';
-  $("#nbPeople").innerHTML = [...(m.people||[]).map(x => `<li>${esc(x.name)}${x.relation ? " · " + esc(x.relation) : ""}</li>`),
-    ...(m.places||[]).map(x => `<li>📍 ${esc(x)}</li>`), ...(m.unknown||[]).map(x => `<li class="muted">Unknown: ${esc(x)}</li>`)].join("") || '<li class="muted">Nothing yet</li>';
-  $("#nbGaps").innerHTML = [...(S.gaps||[])].sort((a,b) => (a.priority||9)-(b.priority||9)).map(g => `<li><span class="layer">${esc(g.type)}</span> ${esc(g.detail)}</li>`).join("") || '<li class="muted">No open gaps</li>';
-  $("#nbResearch").innerHTML = S.research.map(n => `<li><span class="layer">${esc(n.layer||"")}</span> ${esc(n.note)}${n.connection ? `<div class="muted small">Possible link: ${esc(n.connection)}</div>` : ""}${srcLinks(n.sources)}</li>`).join("") || '<li class="muted">Researching as they talk</li>';
+function newRecorder(s){
+  const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+  const mimeType = types.find(t => window.MediaRecorder?.isTypeSupported?.(t));
+  return new MediaRecorder(s, mimeType ? {mimeType} : undefined);
 }
+function stopMic(){ if (stream){ stream.getTracks().forEach(t => t.stop()); stream = null; } }
+
+/* ---------- shared: send a turn to Lantern ---------- */
+function dots(){ const n = Object.values(S.readiness || {}).filter(Boolean).length;
+  const h = `<span>Story</span>${Array.from({length: 6}, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}`;
+  $("#dots1").innerHTML = h; $("#dots2").innerHTML = h; }
 let pendingQ = null;
 async function sendTurn({audio = null, typed = "", skipped = false} = {}){
   const fd = new FormData();
-  fd.append("teller", teller());
-  fd.append("language", $("#language").value === "auto" ? S.lang : $("#language").value);
+  fd.append("teller", teller()); fd.append("language", lang()); fd.append("mode", S.mode);
   fd.append("history", JSON.stringify(S.history));
   fd.append("research", JSON.stringify(S.research.map(r => ({layer: r.layer, note: r.note}))));
   fd.append("memory", JSON.stringify(S.memory || {}));
   if (skipped) fd.append("skipped", "true");
-  if (S.photos[0]) fd.append("photo", dataUrlToBlob(S.photos[0]), "photo.jpg");
-  if (audio) fd.append("audio", audio, "answer.webm");
+  if (S.photos[0] && S.history.length === 0) fd.append("photo", dataUrlToBlob(S.photos[0]), "photo.jpg");
+  if (audio) fd.append("audio", audio, "answer." + (audio.type.includes("mp4") ? "mp4" : "webm"));
   if (typed) fd.append("answer_text", typed);
   const r = await api("/api/turn", {method: "POST", body: fd});
   if (r.language) S.lang = r.language;
-  if (skipped) S.history.push({question_original: pendingQ?.o || "", question_english: pendingQ?.e || "", answer_original: "(skipped)", answer_english: "(skipped)"});
-  if (audio || typed){
-    S.history.push({question_original: pendingQ?.o || "", question_english: pendingQ?.e || "",
+  const q = S.mode === "lantern" ? (pendingQ || {}) : {};
+  if (skipped) S.history.push({question_original: q.o || "", question_english: q.e || "", answer_original: "(skipped)", answer_english: "(skipped)"});
+  if (audio || typed) S.history.push({question_original: q.o || "", question_english: q.e || "",
       answer_original: r.transcript_original || typed, answer_english: r.transcript_english || ""});
-    addMsg("me", r.transcript_original || typed, r.transcript_english);
-  }
   for (const n of (r.research || [])) if (n.note && !S.research.some(x => x.note === n.note)) S.research.push(n);
   if (r.memory && Object.keys(r.memory).length) S.memory = r.memory;
   S.gaps = r.gaps || S.gaps; S.readiness = r.readiness || S.readiness;
-  renderNotebook();
-  if (r.check && r.check.needed && r.check.note) addCheck(r.check.note);
-  pendingQ = {o: r.question_original, e: r.question_english};
-  addMsg("ai", r.question_original, r.question_english);
-  if (r.question_reason){ const d = document.createElement("div"); d.className = "reason"; d.textContent = "Why this question: " + r.question_reason; $("#chat").appendChild(d); }
-  $("#closing").hidden = !r.ready_to_close; $("#skipQ").disabled = false;
-  speak(r.question_original, $("#language").value === "auto" ? r.language : $("#language").value);
-  $("#turnCount").textContent = S.history.length + (S.history.length === 1 ? " answer" : " answers");
-  $("#toReview").disabled = S.history.filter(h => h.answer_original !== "(skipped)").length < 1;
+  if (r.check?.needed && r.check.note) S.checks.push(r.check.note);
+  if (r.question_reason) S.reasons.push({q: r.question_english || r.question_original, why: r.question_reason});
+  dots(); $("#navDetails").hidden = false;
+  return r;
 }
-$("#skipQ").onclick = async () => { $("#skipQ").disabled = true; err(2);
-  addMsg("me", "(Skipped)", ""); try { await sendTurn({skipped: true}); } catch(e){ err(2, e.message); $("#skipQ").disabled = false; } };
-$("#closeReview").onclick = () => $("#toReview").click();
-$("#keepGoing").onclick = () => $("#closing").hidden = true;
-const EXAMPLE = "My grandmother said her family left Guangzhou during the war and moved to a village. They didn't have much food, but she remembered her mother always finding ways to feed everyone.";
-let exampleMode = false, demoMode = false, demoPaused = false;
-const PARTITION_OPENING = "When I was ten, we left Lahore on a train. My mother sewed her gold bangles into my frock, and my father locked our house and kept the big key. He said we would be back in a few weeks. We left in early August, before the border line was announced.";
-async function demoLoop(){
-  let cycle = 1;
-  while (demoMode && cycle <= 10){
-    $("#demoCycle").textContent = `Demo · cycle ${cycle} · readiness ${Object.values(S.readiness||{}).filter(Boolean).length}/6`;
-    if ($("#closing").hidden === false){ $("#demoCycle").textContent = `Story ready after ${cycle - 1} cycles · readiness ${Object.values(S.readiness).filter(Boolean).length}/6`; $("#demoPause").hidden = true; return; }
-    while (demoPaused) await new Promise(r => setTimeout(r, 500));
-    await new Promise(r => setTimeout(r, 1800));
-    $("#recStatus").textContent = "Dadi is answering…";
-    const {answer} = await api("/api/demo-answer", {json: {history: S.history, question: pendingQ?.e || pendingQ?.o || ""}});
-    $("#recStatus").textContent = "Integrating her answer, researching, checking readiness…";
-    await sendTurn({typed: answer}); cycle++;
-  }
-  $("#recStatus").textContent = "";
-}
-$("#demoPause").onclick = () => { demoPaused = !demoPaused; $("#demoPause").textContent = demoPaused ? "Resume" : "Pause"; };
-$("#demoPartition").onclick = () => { demoMode = true; $("#teller").value = "Dadi (fictional)"; $("#language").value = "English";
-  $("#consent").checked = true; $("#begin").disabled = false; $("#begin").click(); };
-$("#example").onclick = () => { exampleMode = true; $("#teller").value = "Ah Ma's granddaughter"; $("#language").value = "English";
-  $("#consent").checked = true; $("#begin").disabled = false; $("#begin").click(); };
-$("#begin").onclick = async () => {
-  S.id = "s" + Date.now(); err(1);
-  $("#ivTitle").textContent = "Talking with " + teller(); show(2);
-  $("#recStatus").textContent = exampleMode ? "Reading the example memory and researching it…" : (S.photos.length ? "Lantern is looking at the photo…" : "Lantern is getting ready…");
-  try {
-    if (demoMode){ $("#demoBar").hidden = false; pendingQ = {o: "What memory would you like to share?", e: ""}; addMsg("ai", pendingQ.o, "");
-      $("#recStatus").textContent = "Dadi shares her first memory. Lantern is researching Lahore and Partition…";
-      await sendTurn({typed: PARTITION_OPENING}); demoLoop().catch(e => err(2, e.message)); return; }
-    if (exampleMode){ pendingQ = {o: "What memory would you like to share?", e: ""}; addMsg("ai", pendingQ.o, ""); await sendTurn({typed: EXAMPLE}); }
-    else await sendTurn();
-    $("#recStatus").textContent = "Tap Record, let them talk, tap Stop when they finish.";
-  } catch(e){ show(1); err(1, e.message); }
-};
+
+/* ---------- Lantern asks ---------- */
 let rec = null, chunks = [];
-$("#rec").onclick = async () => {
-  err(2);
-  if (rec && rec.state === "recording"){ rec.stop(); return; }
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-    chunks = []; rec = new MediaRecorder(stream);
-    rec.ondataavailable = e => e.data.size && chunks.push(e.data);
-    rec.onstop = async () => {
-      stream.getTracks().forEach(t => t.stop());
-      $("#rec").classList.remove("on"); $("#rec").textContent = "Record"; $("#rec").disabled = true;
-      const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"}); S.clips.push(blob);
-      $("#recStatus").textContent = "Listening back, researching, and thinking of the next question…";
-      try { await sendTurn({audio: blob}); $("#recStatus").textContent = "Tap Record for the next answer."; }
-      catch(e){ err(2, e.message); S.clips.pop(); $("#recStatus").textContent = ""; }
-      $("#rec").disabled = false;
-    };
-    rec.start(); $("#rec").classList.add("on"); $("#rec").textContent = "Stop"; $("#recStatus").textContent = "Recording… tap Stop when they finish.";
-  } catch(e){ err(2, "The microphone isn't available. Allow microphone access, or type the answer below."); }
-};
+function setQuestion(o, e){
+  pendingQ = {o, e};
+  $("#qText").textContent = o;
+  $("#qEng").textContent = e || ""; $("#qEng").hidden = !e || e === o;
+}
+const LANG_CODES = {"Hindi":"hi-IN","Bengali":"bn-IN","Tamil":"ta-IN","Telugu":"te-IN","Marathi":"mr-IN","Gujarati":"gu-IN","Punjabi":"pa-IN","Urdu":"ur-IN","Mandarin Chinese":"zh-CN","Cantonese":"zh-HK","Japanese":"ja-JP","Korean":"ko-KR","Tagalog":"fil-PH","Bahasa Indonesia":"id-ID","Thai":"th-TH","Vietnamese":"vi-VN","English":"en-IN"};
+function speak(text){ try { if (!("speechSynthesis" in window) || !text) return; speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); if (LANG_CODES[lang()]) u.lang = LANG_CODES[lang()]; u.rate = .9; speechSynthesis.speak(u); } catch(e) {} }
+$("#hearQ").onclick = () => speak(pendingQ?.o);
+function micState(state){
+  const m = $("#mic"); m.classList.toggle("on", state === "rec"); m.classList.toggle("busy", state === "busy"); m.disabled = state === "busy";
+  $("#micLabel").textContent = {idle: "Tap to answer", rec: "Tap when finished", busy: "Listening…"}[state];
+  $("#talkStatus").textContent = {idle: "", rec: "Recording… take your time.", busy: "Lantern is listening back and thinking of the next question…"}[state];
+  $("#skipQ").disabled = state !== "idle"; $("#finishTalk").disabled = state === "busy" || !S.history.length;
+}
+function showSaid(r, text){
+  const t = r.transcript_original || text; if (!t) return;
+  $("#lastSaid").hidden = false;
+  $("#lastSaid").innerHTML = `<div class="who">${esc(teller())} said</div>${esc(t.length > 260 ? t.slice(0, 260) + "…" : t)}`;
+}
+async function afterTurn(r, text){
+  showSaid(r, text);
+  setQuestion(r.question_original, r.question_english);
+  $("#readyBox").hidden = !r.ready_to_close;
+  if (!demoMode) speak(r.question_original);
+}
+async function startRecording(){
+  err("eTalk");
+  const s = await getMic("eTalk"); if (!s) return false;
+  speechSynthesis?.cancel?.();
+  chunks = []; rec = newRecorder(s);
+  rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  rec.onstop = async () => {
+    const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"});
+    if (blob.size < 2000){ micState("idle"); err("eTalk", "I didn't hear anything. Tap the button and try again."); return; }
+    S.clips.push(blob); micState("busy");
+    try { await afterTurn(await sendTurn({audio: blob})); }
+    catch(e){ S.clips.pop(); err("eTalk", e.message); }
+    micState("idle");
+    if (rec._after) rec._after();
+  };
+  rec.start(); micState("rec"); return true;
+}
+$("#mic").onclick = () => (rec && rec.state === "recording") ? rec.stop() : startRecording();
+$("#skipQ").onclick = async () => { micState("busy"); err("eTalk");
+  try { await afterTurn(await sendTurn({skipped: true})); } catch(e){ err("eTalk", e.message); } micState("idle"); };
+$("#readyMore").onclick = () => $("#readyBox").hidden = true;
+$("#readyReview").onclick = () => toReview("eTalk");
+$("#finishTalk").onclick = () => toReview("eTalk");
+$("#typeLink").onclick = () => { $("#typeBox").hidden = !$("#typeBox").hidden; };
 $("#sendTyped").onclick = async () => {
-  const t = $("#typed").value.trim(); if (!t) return; $("#sendTyped").disabled = true;
-  try { await sendTurn({typed: t}); $("#typed").value = ""; } catch(e){ err(2, e.message); }
-  $("#sendTyped").disabled = false;
+  const t = $("#typed").value.trim(); if (!t) return; micState("busy");
+  try { await afterTurn(await sendTurn({typed: t}), t); $("#typed").value = ""; } catch(e){ err("eTalk", e.message); }
+  micState("idle");
+};
+function begin(mode){
+  Object.assign(S, {id: "s" + Date.now(), mode, history: [], research: [], memory: {}, gaps: [], readiness: {}, checks: [], reasons: [], clips: [], story: null, approved: null, book: null, film: null});
+  dots(); err("eHome");
+}
+$("#startLantern").onclick = async () => {
+  begin("lantern");
+  $("#talkTitle").textContent = "Talking with " + teller();
+  setQuestion(S.photos.length ? "Tell me about this photo. What memory does it bring back?" : "What memory would you like to share?", "");
+  $("#lastSaid").hidden = true; $("#readyBox").hidden = true; $("#typeBox").hidden = true;
+  show("Talk"); micState("idle");
+  await startRecording();               // asks for the microphone straight away and starts listening
 };
 
-/* ---------- 3 reconstruct & review ---------- */
-const KIND = {memory: "Memory", fact: "Fact", uncertain: "Uncertain"};
-function segCard(seg){
-  const d = document.createElement("div"); d.className = "seg " + (seg.kind || "memory");
-  d.innerHTML = `<div class="row" style="justify-content:space-between"><span><span class="badge">${KIND[seg.kind] || "Memory"}</span>${seg.kind === "memory" && seg.origin === "secondhand" ? ' <span class="cert">heard from relatives</span>' : (seg.kind === "memory" && seg.origin === "firsthand" ? ' <span class="cert">lived it</span>' : "")}</span>
-      <button class="btn ghost sm" data-del>Remove</button></div>
-    <textarea data-f="original" aria-label="Original words">${esc(seg.original)}</textarea>
-    <textarea data-f="english" aria-label="English">${esc(seg.english)}</textarea>
-    ${(seg.sources||[]).length ? `<div class="src small">Sources: ${seg.sources.map(s => `<a href="${esc(s.uri)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join(" · ")}</div>` : ""}`;
-  d._seg = seg;
-  d.querySelector("[data-del]").onclick = () => d.remove();
+/* ---------- Partition demo (only with ?demo=1): a fictional storyteller answers ---------- */
+let demoMode = false, demoPaused = false;
+const PARTITION_OPENING = "When I was ten, we left Lahore on a train. My mother sewed her gold bangles into my frock, and my father locked our house and kept the big key. He said we would be back in a few weeks. We left in early August, before the border line was announced.";
+$("#demoPause").onclick = () => { demoPaused = !demoPaused; $("#demoPause").textContent = demoPaused ? "Resume" : "Pause"; };
+$("#demoStart").onclick = async () => {
+  demoMode = true; $("#teller").value = "Dadi"; $("#language").value = "English"; begin("lantern");
+  $("#talkTitle").textContent = "Talking with Dadi"; $("#demoBar").hidden = false;
+  setQuestion("What memory would you like to share?", ""); show("Talk"); micState("busy");
+  try {
+    let cycle = 1, answer = PARTITION_OPENING;
+    while (cycle <= 10){
+      $("#demoText").textContent = `Demo · fictional storyteller · cycle ${cycle}`;
+      $("#talkStatus").textContent = "Dadi is answering. Lantern is researching and checking the story…";
+      showSaid({}, answer);
+      const r = await sendTurn({typed: answer}); await afterTurn(r, answer);
+      if (r.ready_to_close){ $("#demoText").textContent = `Demo · story ready after ${cycle} cycles`; $("#demoPause").hidden = true; break; }
+      while (demoPaused) await new Promise(res => setTimeout(res, 500));
+      await new Promise(res => setTimeout(res, 2500));
+      $("#talkStatus").textContent = "Dadi is thinking…";
+      answer = (await api("/api/demo-answer", {json: {history: S.history, question: pendingQ?.e || pendingQ?.o || ""}})).answer;
+      cycle++;
+    }
+  } catch(e){ err("eTalk", e.message); }
+  micState("idle");
+};
+
+/* ---------- I will ask: record the whole conversation ---------- */
+let famRec = null, famChunks = [], famT0 = 0, famElapsed = 0, famTick = null, famPaused = false;
+function famClock(){ const s = Math.floor((famElapsed + (famPaused ? 0 : Date.now() - famT0)) / 1000);
+  $("#famTimer").textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+function famStart(){
+  famChunks = []; famRec = newRecorder(stream);
+  famRec.ondataavailable = e => e.data.size && famChunks.push(e.data);
+  famRec.start(1000);
+}
+function famPart(){       // stop the current part and hand it back as one recording
+  return new Promise(res => {
+    if (!famRec || famRec.state === "inactive") return res(null);
+    famRec.onstop = () => res(new Blob(famChunks, {type: famRec.mimeType || "audio/webm"}));
+    famRec.stop();
+  });
+}
+async function famSend(blob){
+  if (!blob || blob.size < 2000) return null;
+  S.clips.push(blob);
+  return sendTurn({audio: blob});
+}
+$("#startFamily").onclick = async () => {
+  begin("family");
+  $("#famTitle").textContent = "Recording with " + teller(); $("#ideaBox").hidden = true; err("eFam");
+  show("Family");
+  if (!await getMic("eFam")) return;
+  famPaused = false; famElapsed = 0; famT0 = Date.now(); famStart();
+  clearInterval(famTick); famTick = setInterval(famClock, 500);
+  $("#famPause").textContent = "⏸ Pause"; $("#famState").textContent = "Recording your conversation"; $("#famRec").querySelector("i").hidden = false;
+};
+$("#famPause").onclick = () => {
+  if (!famRec) return;
+  if (famPaused){ famRec.resume(); famT0 = Date.now(); famPaused = false; $("#famPause").textContent = "⏸ Pause";
+    $("#famState").textContent = "Recording your conversation"; $("#famRec").querySelector("i").hidden = false; }
+  else { famRec.pause(); famElapsed += Date.now() - famT0; famPaused = true; $("#famPause").textContent = "▶ Continue";
+    $("#famState").textContent = "Paused"; $("#famRec").querySelector("i").hidden = true; }
+};
+$("#famIdea").onclick = async () => {
+  $("#famIdea").disabled = true; err("eFam"); $("#famStatus").textContent = "Lantern is listening to what you have so far…";
+  const wasPaused = famPaused; const blob = await famPart(); if (!wasPaused) famStart(); else famRec = null;
+  try {
+    const r = await famSend(blob);
+    if (r){ $("#ideaBox").hidden = false; $("#ideaText").textContent = r.question_original;
+      $("#ideaEng").textContent = r.question_english && r.question_english !== r.question_original ? r.question_english : ""; }
+    else err("eFam", "Talk a little longer first, then ask for an idea.");
+  } catch(e){ err("eFam", e.message); }
+  $("#famStatus").textContent = ""; $("#famIdea").disabled = false;
+  if (wasPaused && !famRec){ famStart(); famRec.pause(); }
+};
+$("#famFinish").onclick = async () => {
+  $("#famFinish").disabled = true; err("eFam"); $("#famStatus").textContent = "Lantern is listening to the conversation…";
+  const blob = await famPart(); clearInterval(famTick);
+  try { await famSend(blob); stopMic(); await toReview("eFam"); }
+  catch(e){ err("eFam", e.message); }
+  $("#famStatus").textContent = ""; $("#famFinish").disabled = false;
+};
+
+/* ---------- review ---------- */
+const TAG = {memory: "In their words", fact: "History", uncertain: "Not sure yet"};
+async function toReview(errBox){
+  if (rec && rec.state === "recording") await new Promise(r => { rec._after = r; rec.stop(); });
+  if (!S.history.some(h => h.answer_original !== "(skipped)")){ err(errBox, "Record at least one answer first."); return; }
+  const btns = [$("#finishTalk"), $("#readyReview"), $("#famFinish")]; btns.forEach(b => b.disabled = true);
+  $(errBox === "eFam" ? "#famStatus" : "#talkStatus").textContent = "Putting the story together…";
+  try {
+    S.story = await api("/api/reconstruct", {json: {teller: teller(), language: S.lang, history: S.history, research: S.research, memory: S.memory}});
+    stopMic(); renderSegments(S.story); show("Review");
+  } catch(e){ err(errBox, e.message); }
+  btns.forEach(b => b.disabled = false); $("#talkStatus").textContent = "";
+}
+function segCard(seg, editing = false){
+  const d = document.createElement("div"); d.className = "seg " + (seg.kind || "memory"); d._seg = seg;
+  const origin = seg.kind === "memory" ? (seg.origin === "secondhand" ? " · heard from family" : (seg.origin === "firsthand" ? " · lived it" : "")) : "";
+  const view = () => {
+    d.innerHTML = `<span class="tag">${TAG[seg.kind] || TAG.memory}${origin}</span><div class="o">${esc(seg.original)}</div>
+      ${seg.english && seg.english !== seg.original ? `<div class="e">${esc(seg.english)}</div>` : ""}
+      <div class="acts"><button class="btn soft sm" data-edit>✎ Change</button><button class="btn soft sm" data-del>Remove</button></div>`;
+    d.querySelector("[data-edit]").onclick = edit; d.querySelector("[data-del]").onclick = () => d.remove();
+  };
+  const edit = () => {
+    d.innerHTML = `<span class="tag">${TAG[seg.kind] || TAG.memory}</span><textarea data-f="o">${esc(seg.original)}</textarea>
+      ${seg.kind !== "fact" ? `<textarea data-f="e" placeholder="English (optional)">${esc(seg.english)}</textarea>` : ""}
+      <div class="acts"><button class="btn sm" data-ok>Done</button></div>`;
+    d.querySelector("[data-ok]").onclick = () => { seg.original = d.querySelector('[data-f="o"]').value.trim();
+      const e = d.querySelector('[data-f="e"]'); if (e) seg.english = e.value.trim(); view(); };
+  };
+  editing ? edit() : view();
   return d;
 }
 function renderSegments(story){
@@ -436,34 +545,28 @@ function renderSegments(story){
   $("#segments").innerHTML = "";
   (story.segments || []).forEach(s => $("#segments").appendChild(segCard(s)));
 }
-$("#toReview").onclick = async () => {
-  $("#toReview").disabled = true; err(2);
-  try {
-    S.story = await api("/api/reconstruct", {json: {teller: teller(), language: S.lang, history: S.history, research: S.research, memory: S.memory}});
-    renderSegments(S.story); show(3);
-  } catch(e){ err(2, e.message); }
-  $("#toReview").disabled = false;
-};
-$("#addSeg").onclick = () => $("#segments").appendChild(segCard({kind: "memory", original: "", english: ""}));
+$("#addSeg").onclick = () => $("#segments").appendChild(segCard({kind: "memory", original: "", english: ""}, true));
 $("#approve").onclick = () => {
-  const segs = [...$("#segments").children].map(d => ({ ...d._seg,
-    original: d.querySelector('[data-f="original"]').value.trim(), english: d.querySelector('[data-f="english"]').value.trim() }))
-    .filter(s => s.original || s.english);
-  if (!segs.length){ err(3, "Keep at least one line of the story."); return; }
-  err(3);
-  S.approved = { ...S.story, title: $("#storyTitle").value.trim() || "Our story", segments: segs, teller: teller(), approvedAt: new Date().toISOString() };
-  resetOutputs(); show(4);
+  const segs = [...$("#segments").children].map(d => {
+    const o = d.querySelector('[data-f="o"]'); if (o){ d._seg.original = o.value.trim(); const e = d.querySelector('[data-f="e"]'); if (e) d._seg.english = e.value.trim(); }
+    return {...d._seg}; }).filter(s => s.original || s.english);
+  if (!segs.length){ err("eReview", "Keep at least one part of the story."); return; }
+  err("eReview");
+  S.approved = {...S.story, title: $("#storyTitle").value.trim() || "Our story", segments: segs, teller: teller(), approvedAt: new Date().toISOString()};
+  S.book = null; S.film = null; openMake();
 };
 
-/* ---------- 4 create ---------- */
-function resetOutputs(){ S.book = null; S.film = null; $("#bookOut").hidden = true; $("#filmOut").hidden = true;
-  $("#outTabs").hidden = true; $("#keepRow").hidden = true; $("#prog").hidden = true; }
+/* ---------- make: storybook (PDF) or short film (MP4) ---------- */
+function openMake(){
+  $("#makeHead").hidden = false; $("#makeChoices").hidden = false; $("#lenRow").hidden = false;
+  $("#prog").hidden = true; $("#result").hidden = true; err("eMake"); show("Make");
+  if (S.book || S.film) showResult(S.book ? "book" : "film");
+}
 function progress(items){ const ul = $("#prog"); ul.hidden = false; ul.innerHTML = items.map(t => `<li>${esc(t)}</li>`).join(""); return i => ul.children[i]; }
-const busy = on => { $("#makeBook").disabled = on; $("#makeFilm").disabled = on; };
-
+function making(on){ $("#makeHead").hidden = on; $("#makeChoices").hidden = on; $("#lenRow").hidden = on; $("#result").hidden = on || !(S.book || S.film); }
 $("#makeBook").onclick = async () => {
-  busy(true); err(4);
-  const p = progress(["Planning the pictures", "Restoring the photo", "Drawing three illustrations"]);
+  making(true); err("eMake");
+  const p = progress(["Planning the pictures", "Restoring the photo", "Drawing the pictures"]);
   try {
     p(0).className = "on";
     const plan = await api("/api/plan", {json: {format: "storybook", story: S.approved}}); p(0).className = "done";
@@ -473,149 +576,181 @@ $("#makeBook").onclick = async () => {
     else p(1).className = "done";
     p(2).className = "on"; const pages = [];
     for (const sc of (plan.scenes || []).slice(0, 3)){
-      try { pages.push({img: (await api("/api/illustrate", {json: {prompt: sc.prompt, photos: S.photos.slice(0, 3)}})).image, caption: sc.caption}); }
-      catch(e){ err(4, "One picture couldn't be drawn: " + e.message); }
+      try { pages.push({img: (await api("/api/illustrate", {json: {prompt: sc.prompt, photos: S.photos.slice(0, 3)}})).image, caption: sc.caption}); } catch(e) {}
     }
     p(2).className = pages.length ? "done" : "fail";
-    S.book = {cover, pages}; renderBook(); outTab("book");
-  } catch(e){ err(4, e.message); }
-  busy(false);
+    S.book = {cover, pages}; await save(); $("#prog").hidden = true; showResult("book");
+  } catch(e){ err("eMake", e.message); }
+  making(false);
 };
-
-function bookHTML(book, story){
-  const segs = story.segments || []; const pages = book.pages || []; let pi = 0;
-  const every = Math.max(1, Math.ceil(segs.length / (pages.length + 1)));
-  let html = `${book.cover ? `<div class="cover"><img src="${book.cover}" alt="Restored family photo"></div>` : ""}
-    <div><h2 style="font-size:26px">${esc(story.title)}</h2><div class="muted small">Told by ${esc(story.teller)}${story.language ? " · in " + esc(story.language) : ""}</div></div>`;
-  segs.forEach((s, i) => {
-    if (s.kind === "fact") html += `<div class="factbox"><b>The world then.</b> ${esc(s.english || s.original)}${(s.sources||[]).length ? `<div class="src">${s.sources.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(" · ")}</div>` : ""}</div>`;
-    else if (s.kind === "uncertain") html += `<div class="uncbox"><b>Not sure yet.</b> ${esc(s.english || s.original)}</div>`;
-    else html += `<div class="mem"><div class="o">${esc(s.original)}</div>${s.english && s.english !== s.original ? `<div class="e">${esc(s.english)}</div>` : ""}</div>`;
-    if ((i + 1) % every === 0 && pi < pages.length){ const pg = pages[pi++]; html += `<figure><img src="${pg.img}" alt="${esc(pg.caption)}"><figcaption>${esc(pg.caption)}</figcaption></figure>`; }
-  });
-  while (pi < pages.length){ const pg = pages[pi++]; html += `<figure><img src="${pg.img}" alt="${esc(pg.caption)}"><figcaption>${esc(pg.caption)}</figcaption></figure>`; }
-  return html;
-}
-function renderBook(){
-  $("#bookOut").innerHTML = bookHTML(S.book, S.approved) +
-    (S.clips.length ? `<button class="btn ghost" id="hear">▶ Hear ${esc(S.approved.teller)} tell it</button>` : "");
-  const h = $("#hear"); if (h) h.onclick = () => playAll(S.clips, h);
-}
-let player = null;
-function playAll(clips, btn){
-  if (player){ player.pause(); player = null; btn.textContent = "▶ Hear it in their voice"; return; }
-  let i = 0; btn.textContent = "■ Stop";
-  const next = () => { if (i >= clips.length){ player = null; btn.textContent = "▶ Hear it in their voice"; return; }
-    player = new Audio(URL.createObjectURL(clips[i++])); player.onended = next; player.play(); };
-  next();
-}
-
 $("#makeFilm").onclick = async () => {
-  const n = +$("#shots").value; busy(true); err(4);
-  const p = progress(["Writing the storyboard", "Painting the opening frame", ...Array.from({length: n}, (_, i) => `Clip ${i+1} of ${n} (about a minute each)`), "Joining the clips into one film"]);
+  const n = +$("#shots").value; making(true); err("eMake");
+  const p = progress(["Writing the storyboard", "Painting the first picture", ...Array.from({length: n}, (_, i) => `Filming part ${i+1} of ${n} (about a minute)`), "Joining it into one film"]);
   try {
     p(0).className = "on";
     const plan = await api("/api/plan", {json: {format: "film", story: S.approved, shots: n}}); p(0).className = "done";
     p(1).className = "on";
     let frame = (await api("/api/illustrate", {json: {prompt: plan.opening_frame, photos: S.photos.slice(0, 3), wide: true}})).image;
     p(1).className = "done";
-    const shots = (plan.shots || []).slice(0, n), clipIds = [], reel = [];
-    $("#filmOut").hidden = false; $("#outTabs").hidden = false;
+    const shots = (plan.shots || []).slice(0, n), clipIds = [];
     for (let i = 0; i < shots.length; i++){
       const li = p(2 + i); li.className = "on";
       const {id} = await api("/api/clip", {json: {image: frame, prompt: shots[i].motion || shots[i].caption}});
-      let r;
-      do { await new Promise(res => setTimeout(res, 7000)); r = await api("/api/clip/" + id);
-           if (!r.done) li.textContent = `Clip ${i+1} of ${shots.length} · ${r.seconds}s`; } while (!r.done);
-      if (r.error){ li.className = "fail"; throw new Error(`Clip ${i+1}: ${r.error}`); }
-      li.className = "done"; li.textContent = `Clip ${i+1}: ${shots[i].caption}`;
-      clipIds.push(id); reel.push({url: r.url, caption: shots[i].caption}); frame = r.last_frame;
-      renderReel(reel);
+      let r; do { await new Promise(res => setTimeout(res, 7000)); r = await api("/api/clip/" + id); } while (!r.done);
+      if (r.error){ li.className = "fail"; throw new Error(`Part ${i+1} couldn't be made: ${r.error}`); }
+      li.className = "done"; clipIds.push(id); frame = r.last_frame;
     }
     const last = p(2 + shots.length); last.className = "on";
     const f = await api("/api/film", {json: {clips: clipIds}}); last.className = "done";
     const blob = await (await fetch(f.url)).blob();
-    S.film = {title: plan.title || S.approved.title, blob, reel: reel.map(r => r.caption)};
-    renderFilm(); outTab("film");
-  } catch(e){ err(4, e.message); }
-  busy(false);
+    S.film = {title: plan.title || S.approved.title, blob: new Blob([blob], {type: "video/mp4"}), reel: shots.map(s => s.caption)};
+    await save(); $("#prog").hidden = true; showResult("film");
+  } catch(e){ err("eMake", e.message); }
+  making(false);
 };
-function renderReel(reel){
-  $("#filmOut").innerHTML = `<div class="eyebrow">Clips so far</div><div class="reel">${reel.map((r,i) => `<figure><video src="${r.url}" muted playsinline loop autoplay></video><figcaption>${i+1}. ${esc(r.caption)}</figcaption></figure>`).join("")}</div>`;
+function bookHTML(book, story){
+  const segs = story.segments || []; const pages = book.pages || []; let pi = 0;
+  const every = Math.max(1, Math.ceil(segs.length / (pages.length + 1)));
+  const fig = pg => `<figure><img src="${pg.img}" alt="${esc(pg.caption)}"><figcaption>${esc(pg.caption)}</figcaption></figure>`;
+  let html = `${book.cover ? `<div class="cover"><img src="${book.cover}" alt="Family photo"></div>` : ""}
+    <div><h2>${esc(story.title)}</h2><div class="muted small">Told by ${esc(story.teller)}</div></div>`;
+  segs.forEach((s, i) => {
+    if (s.kind === "fact") html += `<div class="factbox"><b>The world then.</b> ${esc(s.english || s.original)}${(s.sources||[]).length ? `<div class="src">${s.sources.map(x => `<a href="${esc(x.uri)}">${esc(x.title)}</a>`).join(" · ")}</div>` : ""}</div>`;
+    else if (s.kind === "uncertain") html += `<div class="uncbox"><b>Not sure yet.</b> ${esc(s.english || s.original)}</div>`;
+    else html += `<div class="mem"><div class="o">${esc(s.original)}</div>${s.english && s.english !== s.original ? `<div class="e">${esc(s.english)}</div>` : ""}</div>`;
+    if ((i + 1) % every === 0 && pi < pages.length) html += fig(pages[pi++]);
+  });
+  while (pi < pages.length) html += fig(pages[pi++]);
+  return html;
 }
-function renderFilm(){
-  const url = URL.createObjectURL(S.film.blob);
-  $("#filmOut").innerHTML = `<h3 style="font-size:20px">${esc(S.film.title)}</h3><video class="film" src="${url}" controls playsinline></video>
-    <ol class="small muted" style="margin:0;padding-left:20px">${S.film.reel.map(c => `<li>${esc(c)}</li>`).join("")}</ol>
-    <a class="btn ghost sm" href="${url}" download="${esc(S.approved.title)}.mp4" style="align-self:flex-start;text-decoration:none">Download film</a>`;
+const safeName = t => (t || "story").replace(/[^\w\- ]+/g, "").trim() || "story";
+let pdfLib = null;
+function loadPdfLib(){
+  return pdfLib || (pdfLib = new Promise((res, rej) => { const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+    s.onload = () => res(window.html2pdf); s.onerror = () => { pdfLib = null; rej(new Error("Couldn't load the PDF maker. Check the internet connection.")); };
+    document.head.appendChild(s); }));
 }
-function outTab(which){
-  $("#outTabs").hidden = !(S.book || S.film);
-  $("#tabBook").setAttribute("aria-pressed", String(which === "book")); $("#tabFilm").setAttribute("aria-pressed", String(which === "film"));
-  $("#bookOut").hidden = which !== "book" || !S.book; $("#filmOut").hidden = which !== "film" || !S.film;
-  $("#keepRow").hidden = !(S.book || S.film); $("#prog").hidden = true;
+async function makePdf(book, story){
+  const lib = await loadPdfLib();
+  const root = $("#pdfRoot"); root.innerHTML = `<div class="book">${bookHTML(book, story)}<p style="font-size:13px;color:#5E584C">Made with Lantern · ${new Date().toLocaleDateString()}</p></div>`;
+  await Promise.all([...root.querySelectorAll("img")].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; })));
+  const blob = await lib().set({margin: 10, filename: safeName(story.title) + ".pdf", image: {type: "jpeg", quality: .9},
+    html2canvas: {scale: 2, useCORS: true, backgroundColor: "#ffffff"}, jsPDF: {unit: "mm", format: "a4"},
+    pagebreak: {mode: ["css", "legacy"]}}).from(root.firstElementChild).outputPdf("blob");
+  root.innerHTML = "";
+  return new Blob([blob], {type: "application/pdf"});
 }
-$("#tabBook").onclick = () => S.book ? outTab("book") : $("#makeBook").click();
-$("#tabFilm").onclick = () => S.film ? outTab("film") : null;
+function download(blob, name){ const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+async function shareFile(blob, name, title, btn){
+  const file = new File([blob], name, {type: blob.type});
+  try {
+    if (navigator.canShare?.({files: [file]})) await navigator.share({files: [file], title});
+    else { download(blob, name); btn.textContent = "Saved — share it from your downloads"; }
+  } catch(e) {}
+}
+function wireOutputs(scope, book, film, story){
+  const t = story.title, n = safeName(t);
+  const run = async (btn, fn) => { const old = btn.textContent; btn.disabled = true; btn.textContent = "Preparing…";
+    try { await fn(); } catch(e){ alert(e.message); } btn.disabled = false; if (btn.textContent === "Preparing…") btn.textContent = old; };
+  scope.querySelector("[data-pdf]")?.addEventListener("click", e => run(e.currentTarget, async () => download(await makePdf(book, story), n + ".pdf")));
+  scope.querySelector("[data-pdfshare]")?.addEventListener("click", e => run(e.currentTarget, async () => shareFile(await makePdf(book, story), n + ".pdf", t, e.currentTarget)));
+  scope.querySelector("[data-mp4]")?.addEventListener("click", () => download(film.blob, n + ".mp4"));
+  scope.querySelector("[data-mp4share]")?.addEventListener("click", e => shareFile(film.blob, n + ".mp4", t, e.currentTarget));
+}
+function outputBlock(book, film, story, which){
+  if (which === "book") return `<div class="pair"><button class="btn" data-pdf>⬇ Save as PDF</button><button class="btn soft" data-pdfshare>↗ Share PDF</button></div>
+    <div class="book">${bookHTML(book, story)}</div>`;
+  return `<h3>${esc(film.title)}</h3><video class="film" src="${URL.createObjectURL(film.blob)}" controls playsinline></video>
+    <div class="pair"><button class="btn" data-mp4>⬇ Save video (MP4)</button><button class="btn soft" data-mp4share>↗ Share video</button></div>`;
+}
+function showResult(which){
+  const out = $("#result"); out.hidden = false;
+  out.innerHTML = `<h2>${which === "book" ? "Your storybook is ready" : "Your film is ready"}</h2>` + outputBlock(S.book, S.film, S.approved, which) +
+    `<p class="muted small">Saved in My stories on this device.</p>
+     ${which === "book" ? (S.film ? `<button class="btn soft" data-other>🎬 Show the film</button>` : `<button class="btn soft" data-other>🎬 Also make a short film</button>`)
+                        : (S.book ? `<button class="btn soft" data-other>📖 Show the storybook</button>` : `<button class="btn soft" data-other>📖 Also make a storybook</button>`)}
+     ${S.clips.length ? `<button class="btn soft" data-hear>▶ Hear ${esc(S.approved.teller)} tell it</button>` : ""}`;
+  wireOutputs(out, S.book, S.film, S.approved);
+  out.querySelector("[data-other]").onclick = () => {
+    if (which === "book" && S.film) return showResult("film");
+    if (which === "film" && S.book) return showResult("book");
+    $("#result").hidden = true; $("#makeHead").hidden = false; $("#makeChoices").hidden = false; $("#lenRow").hidden = false; window.scrollTo({top: 0});
+  };
+  const h = out.querySelector("[data-hear]"); if (h) h.onclick = () => playAll(S.clips, h);
+  $("#makeHead").hidden = true; $("#makeChoices").hidden = true; $("#lenRow").hidden = true;
+}
+let player = null;
+function playAll(clips, btn){
+  const label = btn.textContent;
+  if (player){ player.pause(); player = null; btn.textContent = btn.dataset.label || label; return; }
+  btn.dataset.label = label; let i = 0; btn.textContent = "■ Stop";
+  const next = () => { if (i >= clips.length){ player = null; btn.textContent = btn.dataset.label; return; }
+    player = new Audio(URL.createObjectURL(clips[i++])); player.onended = next; player.play(); };
+  next();
+}
 
-/* ---------- 5 preserve & share (IndexedDB on this device) ---------- */
+/* ---------- my stories (saved on this device) ---------- */
 function db(){ return new Promise((res, rej) => { const r = indexedDB.open("lantern", 1);
   r.onupgradeneeded = () => r.result.createObjectStore("stories", {keyPath: "id"});
   r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
 async function dbPut(v){ const d = await db(); return new Promise((res, rej) => { const t = d.transaction("stories", "readwrite"); t.objectStore("stories").put(v); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
 async function dbAll(){ const d = await db(); return new Promise((res, rej) => { const q = d.transaction("stories").objectStore("stories").getAll(); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
-$("#keep").onclick = async () => {
-  try {
-    await dbPut({ id: S.id, savedAt: new Date().toISOString(), teller: teller(), story: S.approved, history: S.history,
-      research: S.research, memory: S.memory, photos: S.photos, recordings: S.clips, book: S.book, film: S.film });
-    $("#keep").textContent = "Saved ✓"; setTimeout(() => { $("#keep").textContent = "Save to family collection"; openCollection(); }, 700);
-  } catch(e){ err(4, "Couldn't save on this device: " + e.message); }
-};
-function narrativeText(st){
-  return `${st.title}\nTold by ${st.teller}\n\n` + (st.segments || []).map(s =>
-    `[${KIND[s.kind] || "Memory"}] ${s.original}${s.english && s.english !== s.original ? "\n    " + s.english : ""}${(s.sources||[]).length ? "\n    Sources: " + s.sources.map(x => x.uri).join(", ") : ""}`).join("\n\n");
+async function save(){
+  try { await dbPut({ id: S.id, savedAt: new Date().toISOString(), teller: teller(), mode: S.mode, story: S.approved, history: S.history,
+      research: S.research, memory: S.memory, photos: S.photos, recordings: S.clips, book: S.book, film: S.film }); } catch(e) {}
 }
-function bookFile(it){
-  const css = document.querySelector("style").textContent;
-  return new Blob([`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(it.story.title)}</title><style>${css}</style><body><div class="app"><div class="book">${bookHTML(it.book, it.story)}</div></div></body>`], {type: "text/html"});
-}
-const dl = (blob, name, label) => `<a class="btn ghost sm" style="text-decoration:none" href="${URL.createObjectURL(blob)}" download="${esc(name)}">${label}</a>`;
-async function openCollection(){
-  show(5); $("#detail").hidden = true;
+async function openStories(){
+  show("Stories"); $("#itemView").hidden = true; $("#collection").hidden = false; $("#newStory").hidden = false;
   let items = []; try { items = await dbAll(); } catch(e) {}
   items.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
-  $("#collection").innerHTML = items.length ? "" : '<p class="muted">Nothing saved yet. Finish a story and tap "Save to family collection".</p>';
-  items.forEach(it => { const d = document.createElement("button"); d.className = "item"; d.style.cssText = "background:var(--surface);text-align:left;width:100%";
+  $("#collection").innerHTML = items.length ? "" : '<p class="note">No stories yet. When a storybook or film is made, it is kept here.</p>';
+  items.forEach(it => { const d = document.createElement("button"); d.className = "item";
     const thumb = it.book?.cover || it.photos?.[0] || it.book?.pages?.[0]?.img || "";
-    d.innerHTML = `${thumb ? `<img src="${thumb}" alt="">` : '<img alt="">'}<div><b>${esc(it.story.title)}</b><span class="muted small">${esc(it.teller)} · ${new Date(it.savedAt).toLocaleDateString()} · ${[it.book && "storybook", it.film && "film"].filter(Boolean).join(" + ")}</span></div>`;
+    d.innerHTML = `<img src="${thumb}" alt=""><div><b>${esc(it.story?.title || "Story")}</b><span class="muted small">${esc(it.teller)} · ${new Date(it.savedAt).toLocaleDateString()}<br>${[it.book && "📖 Storybook", it.film && "🎬 Film"].filter(Boolean).join(" · ")}</span></div>`;
     d.onclick = () => openItem(it); $("#collection").appendChild(d); });
 }
 function openItem(it){
-  const det = $("#detail"); det.hidden = false;
-  const safe = it.story.title.replace(/[^\w\- ]+/g, "").trim() || "story";
-  det.innerHTML = `<h3 style="font-size:20px">${esc(it.story.title)}</h3><div class="row">
-      ${dl(new Blob([narrativeText(it.story)], {type: "text/plain"}), safe + ".txt", "Narrative")}
-      ${it.book ? dl(bookFile(it), safe + " storybook.html", "Storybook") : ""}
-      ${it.film ? dl(it.film.blob, safe + ".mp4", "Film") : ""}
-      ${(it.recordings || []).map((r, i) => dl(r, `${safe} recording ${i+1}.webm`, `Recording ${i+1}`)).join("")}
-      <button class="btn sm" id="share">Share</button></div>
-    ${it.film ? `<video class="film" src="${URL.createObjectURL(it.film.blob)}" controls playsinline></video>` : ""}
-    ${it.book ? `<div class="book">${bookHTML(it.book, it.story)}</div>` : ""}
-    <button class="btn ghost sm" id="makeOther" style="align-self:flex-start">${it.film && it.book ? "Open in Create" : "Make the " + (it.book ? "film" : "storybook") + " from this story"}</button>`;
-  $("#share").onclick = async () => {
-    const text = narrativeText(it.story);
-    try { if (navigator.share){ const files = it.film ? [new File([it.film.blob], safe + ".mp4", {type: "video/mp4"})] : [];
-        await navigator.share(files.length && navigator.canShare?.({files}) ? {title: it.story.title, text, files} : {title: it.story.title, text}); }
-      else { await navigator.clipboard.writeText(text); $("#share").textContent = "Copied"; } } catch(e) {}
-  };
-  $("#makeOther").onclick = () => { Object.assign(S, {id: it.id, photos: it.photos || [], history: it.history || [], research: it.research || [], memory: it.memory || {},
-      clips: it.recordings || [], approved: it.story, book: it.book, film: it.film}); $("#teller").value = it.teller;
-    show(4); if (S.book) renderBook(); if (S.film) renderFilm(); outTab(S.book ? "book" : "film"); };
-  det.scrollIntoView({behavior: "smooth"});
+  $("#collection").hidden = true; $("#newStory").hidden = true;
+  const v = $("#itemView"); v.hidden = false;
+  v.innerHTML = `<button class="btn soft sm" data-back style="align-self:flex-start">← All stories</button>
+    ${it.film ? outputBlock(it.book, it.film, it.story, "film") : ""}
+    ${it.book ? outputBlock(it.book, it.film, it.story, "book") : ""}
+    ${(it.recordings || []).length ? `<button class="btn soft" data-hear>▶ Hear ${esc(it.teller)} tell it</button>` : ""}
+    ${!(it.book && it.film) ? `<button class="btn soft" data-other>${it.book ? "🎬 Make a short film from this story" : "📖 Make a storybook from this story"}</button>` : ""}`;
+  wireOutputs(v, it.book, it.film, it.story);
+  v.querySelector("[data-back]").onclick = openStories;
+  const h = v.querySelector("[data-hear]"); if (h) h.onclick = () => playAll(it.recordings, h);
+  const o = v.querySelector("[data-other]");
+  if (o) o.onclick = () => { Object.assign(S, {id: it.id, mode: it.mode || "lantern", photos: it.photos || [], history: it.history || [], research: it.research || [],
+      memory: it.memory || {}, clips: it.recordings || [], approved: it.story, book: it.book, film: it.film}); $("#teller").value = it.teller;
+    $("#result").hidden = true; show("Make"); $("#makeHead").hidden = false; $("#makeChoices").hidden = false; $("#lenRow").hidden = false; $("#prog").hidden = true; };
+  window.scrollTo({top: 0});
 }
-$("#openCollection").onclick = openCollection;
-$("#startNew").onclick = () => location.reload();
-show(1);
+$("#navStories").onclick = openStories;
+$("#newStory").onclick = () => { stopMic(); show("Home"); };
+$("#home").onclick = () => { if (current === "Home") return; if (S.history.length && ["Talk","Family"].includes(current) && !confirm("Leave this recording?")) return; stopMic(); show("Home"); };
+
+/* ---------- details (kept off the main screens) ---------- */
+const READY = {timeline: "Core timeline established", people_places: "People and places identified", history: "Historical context researched",
+  gaps: "Major gaps addressed", substance: "Enough material for a story", uncertainty: "Uncertainty documented"};
+async function renderDetails(){
+  const m = S.memory || {}; const li = (a, f, empty) => a.length ? a.map(f).join("") : `<li class="muted">${empty}</li>`;
+  let usage = ""; try { const u = await api("/api/usage"); usage = `Text ${u.used.text}/${u.limits.text} · Images ${u.used.image}/${u.limits.image} · Video ${u.used.video}/${u.limits.video}`; } catch(e) {}
+  $("#det").innerHTML = `
+    <details open><summary>Story readiness (${Object.values(S.readiness).filter(Boolean).length}/6)</summary><ul style="list-style:none;padding-left:0">${Object.entries(READY).map(([k, v]) => `<li class="${S.readiness[k] ? "ok" : "no"}">${v}</li>`).join("")}</ul></details>
+    <details open><summary>Timeline</summary><ul>${li(m.timeline || [], t => `<li><b>${esc(t.when || "When?")}</b> ${esc(t.what)} <span class="muted">(${esc(t.certainty || "")})</span></li>`, "Nothing yet")}</ul></details>
+    <details><summary>People and places</summary><ul>${li([...(m.people || []).map(x => esc(x.name) + (x.relation ? " · " + esc(x.relation) : "")), ...(m.places || []).map(x => "📍 " + esc(x)), ...(m.unknown || []).map(x => `<span class="muted">Unknown: ${esc(x)}</span>`)], x => `<li>${x}</li>`, "Nothing yet")}</ul></details>
+    <details><summary>Still missing</summary><ul>${li([...(S.gaps || [])].sort((a, b) => (a.priority || 9) - (b.priority || 9)), g => `<li><span class="lay">${esc(g.type)}</span> ${esc(g.detail)}</li>`, "No open gaps")}</ul></details>
+    <details><summary>Gentle checks (things that don't line up)</summary><ul>${li(S.checks, c => `<li>${esc(c)}</li>`, "None so far")}</ul></details>
+    <details><summary>Historical research (${S.research.length})</summary><ul>${li(S.research, n => `<li><span class="lay">${esc(n.layer || "")}</span> ${esc(n.note)}${n.connection ? `<div class="muted">Possible link: ${esc(n.connection)}</div>` : ""}${(n.sources || []).length ? "<div>" + n.sources.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(" · ") + "</div>" : ""}</li>`, "Nothing yet")}</ul></details>
+    <details><summary>Why Lantern asked each question</summary><ul>${li(S.reasons, r => `<li><b>${esc(r.q)}</b><div class="muted">${esc(r.why)}</div></li>`, "No questions yet")}</ul></details>
+    <details><summary>Full conversation (${S.history.length})</summary><ul>${li(S.history, h => `<li>${h.question_original ? `<b>${esc(h.question_original)}</b><br>` : ""}${esc(h.answer_original)}${h.answer_english && h.answer_english !== h.answer_original ? `<div class="muted">${esc(h.answer_english)}</div>` : ""}</li>`, "Nothing recorded yet")}</ul></details>
+    ${usage ? `<details><summary>Cloud usage</summary><p>${usage}</p><p class="muted">Rough cost: each answer under ₹1 · storybook about ₹15 · film about ₹70 per 8 seconds.</p></details>` : ""}`;
+}
+$("#navDetails").onclick = () => { renderDetails(); show("Details"); };
+$("#detBack").onclick = () => show(before);
+dots(); show("Home");
 </script>
 </body>
 </html>

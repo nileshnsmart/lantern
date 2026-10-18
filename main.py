@@ -14,18 +14,22 @@ One Cloud Run service serves the web app (static/) and these endpoints:
   GET  /api/clip/{id}       poll a clip; when done returns its URL and its last frame (for the next clip)
   POST /api/film            clip ids -> one assembled film
   GET  /api/media/{id}.mp4  a clip or film
-  GET  /api/usage           paid calls made by this instance, and the caps
+  POST /api/speak           text -> warm spoken audio (Gemini TTS), for questions and film narration
+  GET  /api/usage           paid calls, the caps, and the estimated credit used and left
 
 Cost guard: every paid call is counted and capped per running instance (see LIMITS); the service runs
 with max-instances=1, so a public link can't run up a large bill.
 """
 import base64
+import hashlib
+import io
 import json
 import os
 import subprocess
 import tempfile
 import time
 import uuid
+import wave
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -38,13 +42,24 @@ PROJECT_ID = os.environ.get("PROJECT_ID", "lantern-aibc")
 TEXT_MODEL = os.environ.get("TEXT_MODEL", "gemini-3.8-flash")
 IMAGE_MODEL = os.environ.get("IMAGE_MODEL", "gemini-nano-banana-2.1")
 VIDEO_MODEL = os.environ.get("VIDEO_MODEL", "veo-3.1-fast-generate-001")
+TTS_MODELS = [m for m in os.environ.get("TTS_MODEL", "gemini-3.1-flash-tts-preview,gemini-2.5-flash-tts").split(",") if m]
+TTS_VOICE = os.environ.get("TTS_VOICE", "Sulafat")          # a warm voice
+VEO_AUDIO = os.environ.get("VEO_AUDIO", "0") == "1"          # natural sound from Veo (costs more)
+DATA_BUCKET = os.environ.get("DATA_BUCKET", "")              # where the credit meter is kept
+CREDIT_START = float(os.environ.get("CREDIT_START", "28707"))
+
+# Estimated cost of each paid call in INR, used only for the on-screen credit meter.
+COST_INR = {"text": 1.0, "search": 4.0, "image": 3.5, "tts": 0.3,
+            "video": 102.0 if VEO_AUDIO else 68.0}
 
 LIMITS = {
     "text": int(os.environ.get("MAX_TEXT_CALLS", "300")),
     "image": int(os.environ.get("MAX_IMAGE_CALLS", "40")),
     "video": int(os.environ.get("MAX_VIDEO_CALLS", "8")),
+    "tts": int(os.environ.get("MAX_TTS_CALLS", "400")),
 }
-USAGE = {"text": 0, "image": 0, "video": 0}
+USAGE = {"text": 0, "image": 0, "video": 0, "tts": 0}
+METER = {"spent_inr": 0.0, "calls": {}}      # persisted across restarts when DATA_BUCKET is set
 
 text_client = genai.Client(vertexai=True, project=PROJECT_ID, location="global")
 video_client = genai.Client(vertexai=True, project=PROJECT_ID, location="us-central1")
@@ -57,11 +72,46 @@ SEARCH = types.Tool(google_search=types.GoogleSearch())
 
 # ---------- helpers ----------
 
-def spend(kind: str):
+def _blob():
+    if not DATA_BUCKET:
+        return None
+    try:
+        from google.cloud import storage
+        return storage.Client(project=PROJECT_ID).bucket(DATA_BUCKET).blob("meter.json")
+    except Exception:
+        return None
+
+
+def load_meter():
+    b = _blob()
+    try:
+        if b is not None and b.exists():
+            METER.update(json.loads(b.download_as_text()))
+    except Exception:
+        pass
+
+
+def save_meter():
+    b = _blob()
+    try:
+        if b is not None:
+            b.upload_from_string(json.dumps(METER), content_type="application/json")
+    except Exception:
+        pass
+
+
+load_meter()
+
+
+def spend(kind: str, price: str | None = None):
     if USAGE[kind] >= LIMITS[kind]:
         raise HTTPException(status_code=429,
-                            detail=f"The demo's {kind} limit ({LIMITS[kind]}) is used up. Ask the owner to raise it.")
+                            detail=f"The {kind} limit ({LIMITS[kind]}) is used up for now. Please try again later.")
     USAGE[kind] += 1
+    key = price or kind
+    METER["spent_inr"] = round(METER.get("spent_inr", 0) + COST_INR[key], 2)
+    METER.setdefault("calls", {})[key] = METER["calls"].get(key, 0) + 1
+    save_meter()
 
 
 def run_ffmpeg(args):
@@ -122,7 +172,7 @@ def sources_of(resp):
 
 
 def ask_text(parts, temperature=0.4, search=False):
-    spend("text")
+    spend("text", "search" if search else "text")
     cfg = types.GenerateContentConfig(temperature=temperature, tools=[SEARCH] if search else None)
     return text_client.models.generate_content(model=TEXT_MODEL, contents=parts, config=cfg)
 
@@ -162,7 +212,12 @@ Work through the loop below, then reply.
    assumptions; major gaps explored, resolved or marked unknown; enough authentic material for a chapter
    or a few film scenes; uncertainty (conflicts, secondhand memories, unverifiable details) documented.
    Set "ready_to_close" true only when additional questions are unlikely to meaningfully improve the story.
-5. ASK ONE QUESTION, chosen for the biggest improvement: clarify an important inconsistency, explain a
+5. RESPOND LIKE A CARING PERSON. Before the question, write one short, sincere acknowledgement of what
+   they just shared (a feeling, a detail, thanks), in their language, the way a loving grandchild would
+   ("That must have been so frightening at ten years old." / "What a beautiful memory of your mother.").
+   Never gushing, never generic, never more than one sentence; skip it if there is no answer yet.
+   Also choose the tone of voice for reading it aloud: gentle, warm, tender, cheerful or curious.
+6. ASK ONE QUESTION, chosen for the biggest improvement: clarify an important inconsistency, explain a
    major decision, connect personal experience to the historical context, or recover a missing part of
    the timeline. Conversational, neutral, non-leading; never assume a historical event affected them.
    Distinguish what they saw themselves from what relatives told them. Be gentle about loss, war,
@@ -182,6 +237,7 @@ Reply with JSON only:
   "readiness": {{"timeline": false, "people_places": false, "history": false, "gaps": false,
                 "substance": false, "uncertainty": false}},
   "ready_to_close": false,
+  "acknowledgement_original": "...", "acknowledgement_english": "...", "tone": "warm",
   "question_original": "...", "question_english": "...", "question_reason": "..."}}"""
 
 
@@ -349,16 +405,21 @@ Each shot continues from the last frame of the previous shot, so describe how th
 where the previous shot ended to this shot's scene. Focus on places, objects, light and weather;
 people appear small, in silhouette or from behind, never close-up faces.
 Also write one prompt for the opening frame (a still image) of shot 1.
+For each shot write a narration line that a warm narrator reads over it, in the storyteller's language
+({language}), using their own words wherever possible and never inventing facts. At most 14 words, so
+it fits in 8 seconds; tender, simple, like a grandchild retelling it.
 Reply with JSON only:
 {{"title": "...", "opening_frame": "...",
-  "shots": [{{"caption": "...", "motion": "camera and scene motion for this 8 s shot"}}]}}"""
+  "shots": [{{"caption": "...", "narration": "...", "narration_english": "...",
+             "motion": "camera and scene motion for this 8 s shot"}}]}}"""
 
 
 @app.post("/api/plan")
 async def plan(body: PlanIn):
     story = json.dumps(body.story, ensure_ascii=False)
     if body.format == "film":
-        prompt = PLAN_FILM.format(story=story, shots=max(2, min(body.shots, 4)))
+        prompt = PLAN_FILM.format(story=story, shots=max(2, min(body.shots, 4)),
+                                  language=body.story.get("language") or "the language they spoke")
     else:
         prompt = PLAN_BOOK.format(story=story)
     return parse_json(ask_text([prompt], temperature=0.5).text)
@@ -421,10 +482,11 @@ async def clip(body: ClipIn):
     op = video_client.models.generate_videos(
         model=VIDEO_MODEL,
         prompt=body.prompt + " Painterly illustrated film style, consistent with the starting frame. "
-                             "Gentle, smooth motion. No close-up faces, no text.",
+                             "Gentle, smooth motion. No close-up faces, no text."
+                             + (" Sound: soft natural ambience of the scene only, no speech, no music." if VEO_AUDIO else ""),
         image=types.Image(image_bytes=raw.inline_data.data, mime_type=raw.inline_data.mime_type),
         config=types.GenerateVideosConfig(duration_seconds=8, aspect_ratio="16:9", number_of_videos=1,
-                                          generate_audio=False),
+                                          generate_audio=VEO_AUDIO),
     )
     job = uuid.uuid4().hex[:12]
     JOBS[job] = {"op": op, "started": time.time()}
@@ -454,6 +516,20 @@ async def clip_status(job: str):
 
 class FilmIn(BaseModel):
     clips: list[str]
+    narration: list[str] = []     # one line per clip, read by the narrator
+    language: str = "auto"
+    voice: str | None = None      # a short piece of the storyteller's own recording (data URL) for the ending
+    teller: str = ""
+
+
+V = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-r", "24"]
+A = ["-c:a", "aac", "-b:a", "160k", "-ar", "48000", "-ac", "2"]
+
+
+def has_audio(path: str) -> bool:
+    r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index",
+                        "-of", "csv=p=0", path], capture_output=True, text=True)
+    return bool(r.stdout.strip())
 
 
 @app.post("/api/film")
@@ -461,19 +537,64 @@ async def film(body: FilmIn):
     missing = [c for c in body.clips if c not in MEDIA]
     if missing or not body.clips:
         raise HTTPException(status_code=400, detail="Some clips are missing; generate them again.")
+    n = len(body.clips)
     with tempfile.TemporaryDirectory() as d:
-        listing = os.path.join(d, "list.txt")
-        with open(listing, "w") as f:
-            for i, c in enumerate(body.clips):
-                path = os.path.join(d, f"{i}.mp4")
-                open(path, "wb").write(MEDIA[c])
-                f.write(f"file '{path}'\n")
-        out = os.path.join(d, "film.mp4")
-        run_ffmpeg(["-f", "concat", "-safe", "0", "-i", listing, "-c:v", "libx264", "-preset", "veryfast",
-                    "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", out])
+        j = lambda *x: os.path.join(d, *x)
+        # 1. picture: one continuous 1280x720 track (keeping Veo's natural sound if it made any)
+        parts = []
+        for i, c in enumerate(body.clips):
+            raw, norm = j(f"c{i}.mp4"), j(f"n{i}.mp4")
+            open(raw, "wb").write(MEDIA[c])
+            if has_audio(raw):
+                run_ffmpeg(["-i", raw, "-t", "8", "-vf", "scale=1280:720,setsar=1", *V, *A, norm])
+            else:
+                run_ffmpeg(["-i", raw, "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", "8",
+                            "-vf", "scale=1280:720,setsar=1", *V, *A, "-shortest", norm])
+            parts.append(norm)
+        with open(j("list.txt"), "w") as f:
+            f.writelines(f"file '{p}'\n" for p in parts)
+        run_ffmpeg(["-f", "concat", "-safe", "0", "-i", j("list.txt"), "-c", "copy", j("pic.mp4")])
+        # 2. narration: each line placed at the start of its own 8 s shot
+        segs = []
+        for i in range(n):
+            line = (body.narration[i] if i < len(body.narration) else "").strip()
+            seg = j(f"s{i}.wav")
+            if line:
+                pcm = tts_pcm(line, body.language, "warm, tender storyteller")
+                open(j(f"t{i}.wav"), "wb").write(pcm_to_wav(pcm))
+                dur = len(pcm) / 48000
+                speed = min(1.3, dur / 7.0) if dur > 7.0 else 1.0
+                run_ffmpeg(["-i", j(f"t{i}.wav"), "-af", f"atempo={speed:.3f},adelay=500|500,apad,atrim=0:8",
+                            "-ar", "48000", "-ac", "2", seg])
+            else:
+                run_ffmpeg(["-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", "8", seg])
+            segs.append(seg)
+        with open(j("alist.txt"), "w") as f:
+            f.writelines(f"file '{p}'\n" for p in segs)
+        run_ffmpeg(["-f", "concat", "-safe", "0", "-i", j("alist.txt"), j("narr.wav")])
+        # 3. mix: narration on top, scene sound softly underneath
+        run_ffmpeg(["-i", j("pic.mp4"), "-i", j("narr.wav"), "-filter_complex",
+                    "[0:a]volume=0.35[amb];[1:a]volume=1.6[nar];[amb][nar]amix=inputs=2:duration=first:normalize=0[a]",
+                    "-map", "0:v", "-map", "[a]", "-c:v", "copy", *A, j("main.mp4")])
+        final = j("main.mp4")
+        # 4. ending: the last picture held, with a few seconds of their own voice
+        if body.voice:
+            try:
+                open(j("voice.in"), "wb").write(b64_part(body.voice, "audio/webm").inline_data.data)
+                run_ffmpeg(["-sseof", "-0.2", "-i", j("pic.mp4"), "-update", "1", "-q:v", "2", j("end.jpg")])
+                run_ffmpeg(["-loop", "1", "-i", j("end.jpg"), "-i", j("voice.in"), "-t", "12",
+                            "-vf", "scale=1280:720,setsar=1,fade=t=in:st=0:d=0.8,fade=t=out:st=11:d=1",
+                            "-af", "afade=t=in:st=0:d=0.5,afade=t=out:st=10.5:d=1.5,apad", *V, *A, "-shortest", j("tail.mp4")])
+                with open(j("flist.txt"), "w") as f:
+                    f.write(f"file '{j('main.mp4')}'\nfile '{j('tail.mp4')}'\n")
+                run_ffmpeg(["-f", "concat", "-safe", "0", "-i", j("flist.txt"), *V, *A, j("final.mp4")])
+                final = j("final.mp4")
+            except Exception:
+                final = j("main.mp4")
+        run_ffmpeg(["-i", final, "-c", "copy", "-movflags", "+faststart", j("out.mp4")])
         fid = "film-" + uuid.uuid4().hex[:10]
-        MEDIA[fid] = open(out, "rb").read()
-    return {"id": fid, "url": f"/api/media/{fid}.mp4", "seconds": 8 * len(body.clips)}
+        MEDIA[fid] = open(j("out.mp4"), "rb").read()
+    return {"id": fid, "url": f"/api/media/{fid}.mp4", "seconds": 8 * n + (12 if body.voice else 0)}
 
 
 @app.get("/api/media/{name}")
@@ -484,12 +605,77 @@ async def media(name: str):
     return Response(MEDIA[key], media_type="video/mp4")
 
 
+# ---------- voice: Gemini TTS ----------
+
+LANG_CODE = {"hindi": "hi-IN", "bengali": "bn-BD", "bangla": "bn-BD", "tamil": "ta-IN", "telugu": "te-IN",
+             "marathi": "mr-IN", "english": "en-IN", "japanese": "ja-JP", "korean": "ko-KR", "thai": "th-TH",
+             "vietnamese": "vi-VN", "bahasa indonesia": "id-ID", "indonesian": "id-ID", "gujarati": "gu-IN",
+             "punjabi": "pa-IN", "urdu": "ur-IN", "mandarin chinese": "cmn-CN", "cantonese": "yue-HK",
+             "tagalog": "fil-PH"}
+TTS_CACHE = {}
+VOICES = {"Sulafat", "Gacrux", "Achernar", "Charon", "Kore", "Aoede", "Algieba"}
+
+
+def pcm_to_wav(pcm: bytes, rate: int = 24000) -> bytes:
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(pcm)
+    return buf.getvalue()
+
+
+def tts_pcm(text: str, language: str = "auto", tone: str = "warm", voice: str | None = None) -> bytes:
+    voice = voice if voice in VOICES else TTS_VOICE
+    key = hashlib.sha1(f"{text}|{language}|{tone}|{voice}".encode()).hexdigest()
+    if key in TTS_CACHE:
+        return TTS_CACHE[key]
+    spend("tts")
+    style = (f"Read this in a {tone} voice, slowly and softly, with real feeling, like a caring grandchild "
+             f"talking to their grandparent. Natural pauses, never robotic") if voice == TTS_VOICE else (
+             f"Speak as a {tone}. Unhurried, with natural pauses and real feeling")
+    code = LANG_CODE.get((language or "").strip().lower())
+    speech = types.SpeechConfig(voice_config=types.VoiceConfig(
+        prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name=voice)))
+    if code:
+        speech.language_code = code
+    last = None
+    for model in TTS_MODELS:
+        try:
+            resp = text_client.models.generate_content(
+                model=model, contents=f"{style}: {text}",
+                config=types.GenerateContentConfig(response_modalities=["AUDIO"], speech_config=speech))
+            data = resp.candidates[0].content.parts[0].inline_data.data
+            if data:
+                TTS_CACHE[key] = data
+                return data
+        except Exception as e:      # try the next voice model
+            last = e
+    raise HTTPException(status_code=502, detail=f"The voice isn't available right now ({last}).")
+
+
+class SpeakIn(BaseModel):
+    text: str
+    language: str = "auto"
+    tone: str = "warm"
+    voice: str | None = None
+
+
+@app.post("/api/speak")
+async def speak(body: SpeakIn):
+    text = body.text.strip()[:600]
+    if not text:
+        raise HTTPException(status_code=400, detail="Nothing to say.")
+    return Response(pcm_to_wav(tts_pcm(text, body.language, body.tone, body.voice)), media_type="audio/wav")
+
+
 # ---------- misc ----------
 
 @app.get("/api/usage")
 async def usage():
-    return {"used": USAGE, "limits": LIMITS,
-            "models": {"text": TEXT_MODEL, "image": IMAGE_MODEL, "video": VIDEO_MODEL}}
+    spent = METER.get("spent_inr", 0)
+    return {"used": USAGE, "limits": LIMITS, "credit_start_inr": CREDIT_START,
+            "spent_inr": round(spent, 2), "left_inr": round(CREDIT_START - spent, 2),
+            "calls": METER.get("calls", {}), "cost_inr": COST_INR, "veo_audio": VEO_AUDIO,
+            "models": {"text": TEXT_MODEL, "image": IMAGE_MODEL, "video": VIDEO_MODEL, "voice": TTS_MODELS[0]}}
 
 
 @app.exception_handler(HTTPException)

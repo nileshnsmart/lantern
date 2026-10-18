@@ -23,11 +23,12 @@ Built for the Google Cloud AI Builder Cup 2026, theme **Media, Content & Digital
 | Story reconstruction, storyboard | `gemini-3.8-flash` |
 | Photo restoration, illustrations, film opening frame | `gemini-nano-banana-2.1` |
 | Film clips chained by last frame | Veo: `veo-3.1-fast-generate-001`, joined with ffmpeg |
+| Warm spoken questions, film narration | Gemini TTS: `gemini-3.1-flash-tts-preview` (fallback `gemini-2.5-flash-tts`) |
 | Hosting | Cloud Run (one service serves the web app and the API) |
 
 ## Cost guard
 
-Every paid model call is counted and capped per instance (defaults: 300 text, 40 image, 8 video calls). The service is deployed with `--max-instances 1`, so a public link can't run up a large bill. Current usage: `GET /api/usage`.
+Every paid model call is counted and capped per instance (defaults: 300 text, 40 image, 8 video, 400 voice calls), and an estimated credit meter (kept in a Cloud Storage bucket, `DATA_BUCKET`) is shown at the top of the app. The service is deployed with `--max-instances 1`, so a public link can't run up a large bill. Current usage: `GET /api/usage`.
 
 ## Run it on Google Cloud
 

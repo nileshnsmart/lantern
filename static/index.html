@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lantern</title>
+<meta name="theme-color" content="#E8930C">
+<meta property="og:title" content="Lantern — Tell me again">
+<meta property="og:description" content="Record a grandparent's story in their own voice and keep it as a storybook or a short film.">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="description" content="Record a family story by voice and keep it as a storybook or a short film.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Cpath d='M9 8h16l2 4v12l-2 4H9l-2-4V12z' fill='%23E8930C'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -132,7 +138,15 @@ video.film{width:100%;border-radius:16px;display:block;background:#000}
 .det .lay{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
 .det .ok::before{content:"✓ ";color:var(--good);font-weight:700}
 .det .no::before{content:"○ ";color:var(--muted)}
-footer{font-size:15px;color:var(--muted);text-align:center}
+footer{font-size:15px;color:var(--muted);text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+.credit{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:16px;font-weight:700;color:var(--good)}
+.credit small{font-weight:400;color:var(--muted);font-size:13px}
+.ack{font-size:19px;color:var(--indigo);font-style:italic}
+.speaking .q{animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{opacity:.7}}
+.price{font-size:15px;color:var(--accent-ink);font-weight:700}
+.welcome{background:var(--accent-soft);border-radius:20px;padding:16px 18px;display:flex;gap:14px;align-items:center}
+.welcome .steps3{display:flex;flex-direction:column;gap:2px;font-size:17px}
 /* PDF render target */
 #pdfRoot{position:fixed;left:-10000px;top:0;width:760px;background:#fff;color:#1E1B16;font-size:18px}
 #pdfRoot .book{background:#fff;--surface:#fff;--ink:#1E1B16;--muted:#5E584C;--line:#DDD7C8;--good-soft:#DDF1E6;--warn-soft:#FFF1D6;--accent:#E8930C;--indigo:#3B3486}
@@ -148,6 +162,7 @@ footer{font-size:15px;color:var(--muted);text-align:center}
       <b>Lantern</b>
     </button>
     <div class="nav">
+      <button class="credit" id="credit" title="Estimated cloud credit left">₹ — <small>credit</small></button>
       <button class="btn soft sm" id="navStories">📚 My stories</button>
       <button class="btn soft sm" id="navDetails" hidden>Details</button>
     </div>
@@ -155,7 +170,8 @@ footer{font-size:15px;color:var(--muted);text-align:center}
 
   <!-- HOME -->
   <section class="view" id="vHome">
-    <div><h1>Record a family story</h1><p class="muted big" style="margin-top:6px">In their own voice and language.</p></div>
+    <div><h1>Record a family story</h1><p class="muted big" style="margin-top:6px">In their own voice and language, before it's lost.</p></div>
+    <div class="welcome"><span style="font-size:38px">🏮</span><div class="steps3"><span><b>1.</b> They talk, Lantern listens and gently asks.</span><span><b>2.</b> You check the story together.</span><span><b>3.</b> Keep it as a storybook or a short film.</span></div></div>
     <label class="field">Who is telling the story?<input type="text" id="teller" placeholder="Nani, Dadu, Grandpa…" autocomplete="off"></label>
     <div class="field" style="gap:10px"><span style="font-size:18px;font-weight:500">Who will ask the questions?</span>
       <div class="pair">
@@ -184,7 +200,7 @@ footer{font-size:15px;color:var(--muted);text-align:center}
   <section class="view" id="vTalk" hidden>
     <div class="demo" id="demoBar" hidden><span id="demoText">Demo</span><button class="btn soft sm" id="demoPause">Pause</button></div>
     <div class="top"><b class="big" id="talkTitle">Talking with Nani</b><div class="dots" id="dots1"></div></div>
-    <div class="qcard"><div class="q" id="qText">What memory would you like to share?</div><div class="qe" id="qEng" hidden></div>
+    <div class="qcard" id="qcard"><div class="ack" id="qAck" hidden></div><div class="q" id="qText">What memory would you like to share?</div><div class="qe" id="qEng" hidden></div>
       <button class="btn soft sm" id="hearQ" style="align-self:flex-start">🔊 Hear the question</button></div>
     <button class="mic" id="mic"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg><span id="micLabel">Tap to answer</span></button>
     <div class="status" id="talkStatus"></div>
@@ -229,8 +245,8 @@ footer{font-size:15px;color:var(--muted);text-align:center}
   <section class="view" id="vMake" hidden>
     <div id="makeHead"><h2>How would you like to keep it?</h2><p class="muted" style="margin-top:6px">You can make the other one later.</p></div>
     <div class="pair" id="makeChoices">
-      <button class="choice" id="makeBook"><span class="ico">📖</span><b>Storybook</b><span>Their words, pictures and history. Save as PDF.</span></button>
-      <button class="choice" id="makeFilm"><span class="ico">🎬</span><b>Short film</b><span>A short video of the story. Save as MP4.</span></button>
+      <button class="choice" id="makeBook"><span class="ico">📖</span><b>Storybook</b><span>Their words, pictures and history. Save as PDF.</span><span class="price">about ₹15</span></button>
+      <button class="choice" id="makeFilm"><span class="ico">🎬</span><b>Short film</b><span>Narrated, with a closing moment in their own voice. Save as MP4.</span><span class="price" id="filmPrice">about ₹210</span></button>
     </div>
     <label class="field small" id="lenRow" style="font-size:16px">Film length
       <select id="shots"><option value="2">16 seconds</option><option value="3" selected>24 seconds</option><option value="4">32 seconds</option></select></label>
@@ -254,7 +270,9 @@ footer{font-size:15px;color:var(--muted);text-align:center}
     <div class="det" id="det"></div>
   </section>
 
-  <footer>Lantern keeps their own words. It never copies a voice or animates a real face.</footer>
+  <footer><span>Lantern keeps their own words. It never copies their voice or animates a real face.</span>
+    <span>Stories are saved only on this device. Recordings are sent to Google Cloud AI only to listen, research and create.</span>
+    <span>© 2026 Lantern · Made in India</span></footer>
 </div>
 <div id="pdfRoot" aria-hidden="true"></div>
 
@@ -281,8 +299,15 @@ async function api(path, opts = {}){
   const r = await fetch(path, opts); let d = {};
   try { d = await r.json(); } catch(e) {}
   if (!r.ok) throw new Error(d.error || d.detail || ("Something went wrong (" + r.status + "). Please try again."));
+  if (opts.method === "POST") refreshCredit();
   return d;
 }
+const inr = n => "₹" + Math.round(n).toLocaleString("en-IN");
+let creditTimer = null;
+function refreshCredit(){ clearTimeout(creditTimer); creditTimer = setTimeout(async () => {
+  try { const u = await (await fetch("/api/usage")).json();
+    $("#credit").innerHTML = `${inr(u.left_inr)} <small>credit left</small>`;
+    $("#credit").title = `Estimated: ${inr(u.spent_inr)} used of ${inr(u.credit_start_inr)}`; } catch(e) {} }, 400); }
 const teller = () => $("#teller").value.trim() || "Nani";
 const lang = () => $("#language").value === "auto" ? S.lang : $("#language").value;
 
@@ -357,15 +382,32 @@ async function sendTurn({audio = null, typed = "", skipped = false} = {}){
 
 /* ---------- Lantern asks ---------- */
 let rec = null, chunks = [];
-function setQuestion(o, e){
-  pendingQ = {o, e};
+function setQuestion(o, e, ack = ""){
+  pendingQ = {o, e, ack};
+  $("#qAck").textContent = ack; $("#qAck").hidden = !ack;
   $("#qText").textContent = o;
   $("#qEng").textContent = e || ""; $("#qEng").hidden = !e || e === o;
 }
 const LANG_CODES = {"Hindi":"hi-IN","Bengali":"bn-IN","Tamil":"ta-IN","Telugu":"te-IN","Marathi":"mr-IN","Gujarati":"gu-IN","Punjabi":"pa-IN","Urdu":"ur-IN","Mandarin Chinese":"zh-CN","Cantonese":"zh-HK","Japanese":"ja-JP","Korean":"ko-KR","Tagalog":"fil-PH","Bahasa Indonesia":"id-ID","Thai":"th-TH","Vietnamese":"vi-VN","English":"en-IN"};
-function speak(text){ try { if (!("speechSynthesis" in window) || !text) return; speechSynthesis.cancel();
+function browserSpeak(text){ try { if (!("speechSynthesis" in window) || !text) return; speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text); if (LANG_CODES[lang()]) u.lang = LANG_CODES[lang()]; u.rate = .9; speechSynthesis.speak(u); } catch(e) {} }
-$("#hearQ").onclick = () => speak(pendingQ?.o);
+let voice = null; const voiceCache = new Map();
+function stopVoice(){ if (voice){ voice.pause(); voice = null; } $("#qcard").classList.remove("speaking"); try { speechSynthesis.cancel(); } catch(e) {} }
+async function speak(text, tone = "warm", who = null){
+  if (!text) return; stopVoice();
+  try {
+    const key = text + "|" + tone + "|" + who; let url = voiceCache.get(key);
+    if (!url){ const r = await fetch("/api/speak", {method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({text, language: lang(), tone, voice: who})});
+      if (!r.ok) throw new Error(); url = URL.createObjectURL(await r.blob()); voiceCache.set(key, url); refreshCredit(); }
+    if (rec && rec.state === "recording") return;
+    voice = new Audio(url); if (!who) $("#qcard").classList.add("speaking");
+    const done = new Promise(res => { voice.onended = voice.onerror = () => { $("#qcard").classList.remove("speaking"); res(); }; });
+    await voice.play(); await done;
+  } catch(e){ if (!who) browserSpeak(text); }
+}
+const fullQ = () => [pendingQ?.ack, pendingQ?.o].filter(Boolean).join(" ");
+$("#hearQ").onclick = () => speak(fullQ(), pendingQ?.tone);
 function micState(state){
   const m = $("#mic"); m.classList.toggle("on", state === "rec"); m.classList.toggle("busy", state === "busy"); m.disabled = state === "busy";
   $("#micLabel").textContent = {idle: "Tap to answer", rec: "Tap when finished", busy: "Listening…"}[state];
@@ -379,14 +421,15 @@ function showSaid(r, text){
 }
 async function afterTurn(r, text){
   showSaid(r, text);
-  setQuestion(r.question_original, r.question_english);
+  setQuestion(r.question_original, r.question_english, r.acknowledgement_original || "");
+  pendingQ.tone = r.tone || "warm";
   $("#readyBox").hidden = !r.ready_to_close;
-  if (!demoMode) speak(r.question_original);
+  if (!demoMode) speak(fullQ(), pendingQ.tone);
 }
 async function startRecording(){
   err("eTalk");
   const s = await getMic("eTalk"); if (!s) return false;
-  speechSynthesis?.cancel?.();
+  stopVoice();
   chunks = []; rec = newRecorder(s);
   rec.ondataavailable = e => e.data.size && chunks.push(e.data);
   rec.onstop = async () => {
@@ -439,7 +482,10 @@ $("#demoStart").onclick = async () => {
       $("#demoText").textContent = `Demo · fictional storyteller · cycle ${cycle}`;
       $("#talkStatus").textContent = "Dadi is answering. Lantern is researching and checking the story…";
       showSaid({}, answer);
+      await speak(answer, "gentle elderly grandmother remembering her childhood, a little nostalgic", "Gacrux");
+      $("#talkStatus").textContent = "Lantern is researching and checking the story…";
       const r = await sendTurn({typed: answer}); await afterTurn(r, answer);
+      $("#talkStatus").textContent = ""; await speak(fullQ(), pendingQ.tone);
       if (r.ready_to_close){ $("#demoText").textContent = `Demo · story ready after ${cycle} cycles`; $("#demoPause").hidden = true; break; }
       while (demoPaused) await new Promise(res => setTimeout(res, 500));
       await new Promise(res => setTimeout(res, 2500));
@@ -583,9 +629,11 @@ $("#makeBook").onclick = async () => {
   } catch(e){ err("eMake", e.message); }
   making(false);
 };
+const filmCost = n => 15 + n * (window.VEO_AUDIO ? 102 : 68);
+$("#shots").onchange = () => $("#filmPrice").textContent = "about " + inr(filmCost(+$("#shots").value));
 $("#makeFilm").onclick = async () => {
   const n = +$("#shots").value; making(true); err("eMake");
-  const p = progress(["Writing the storyboard", "Painting the first picture", ...Array.from({length: n}, (_, i) => `Filming part ${i+1} of ${n} (about a minute)`), "Joining it into one film"]);
+  const p = progress(["Writing the storyboard", "Painting the first picture", ...Array.from({length: n}, (_, i) => `Filming part ${i+1} of ${n} (about a minute)`), "Adding the narration and their own voice"]);
   try {
     p(0).className = "on";
     const plan = await api("/api/plan", {json: {format: "film", story: S.approved, shots: n}}); p(0).className = "done";
@@ -601,7 +649,10 @@ $("#makeFilm").onclick = async () => {
       li.className = "done"; clipIds.push(id); frame = r.last_frame;
     }
     const last = p(2 + shots.length); last.className = "on";
-    const f = await api("/api/film", {json: {clips: clipIds}}); last.className = "done";
+    const own = S.clips.find(c => c.size > 30000 && c.size < 4e6);
+    const voiceData = own ? await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(own); }) : null;
+    const f = await api("/api/film", {json: {clips: clipIds, narration: shots.map(s => s.narration || ""), language: S.lang || lang(),
+      voice: voiceData, teller: S.approved.teller}}); last.className = "done";
     const blob = await (await fetch(f.url)).blob();
     S.film = {title: plan.title || S.approved.title, blob: new Blob([blob], {type: "video/mp4"}), reel: shots.map(s => s.caption)};
     await save(); $("#prog").hidden = true; showResult("film");
@@ -736,7 +787,10 @@ const READY = {timeline: "Core timeline established", people_places: "People and
   gaps: "Major gaps addressed", substance: "Enough material for a story", uncertainty: "Uncertainty documented"};
 async function renderDetails(){
   const m = S.memory || {}; const li = (a, f, empty) => a.length ? a.map(f).join("") : `<li class="muted">${empty}</li>`;
-  let usage = ""; try { const u = await api("/api/usage"); usage = `Text ${u.used.text}/${u.limits.text} · Images ${u.used.image}/${u.limits.image} · Video ${u.used.video}/${u.limits.video}`; } catch(e) {}
+  let usage = ""; try { const u = await api("/api/usage");
+    usage = `<b>${inr(u.left_inr)}</b> estimated credit left (${inr(u.spent_inr)} used of ${inr(u.credit_start_inr)}).<br>
+      Calls: ${Object.entries(u.calls || {}).map(([k, v]) => `${k} ${v}`).join(" · ") || "none yet"}.<br>
+      Models: ${esc(u.models.text)} · ${esc(u.models.image)} · ${esc(u.models.video)} · ${esc(u.models.voice)}`; } catch(e) {}
   $("#det").innerHTML = `
     <details open><summary>Story readiness (${Object.values(S.readiness).filter(Boolean).length}/6)</summary><ul style="list-style:none;padding-left:0">${Object.entries(READY).map(([k, v]) => `<li class="${S.readiness[k] ? "ok" : "no"}">${v}</li>`).join("")}</ul></details>
     <details open><summary>Timeline</summary><ul>${li(m.timeline || [], t => `<li><b>${esc(t.when || "When?")}</b> ${esc(t.what)} <span class="muted">(${esc(t.certainty || "")})</span></li>`, "Nothing yet")}</ul></details>
@@ -746,9 +800,12 @@ async function renderDetails(){
     <details><summary>Historical research (${S.research.length})</summary><ul>${li(S.research, n => `<li><span class="lay">${esc(n.layer || "")}</span> ${esc(n.note)}${n.connection ? `<div class="muted">Possible link: ${esc(n.connection)}</div>` : ""}${(n.sources || []).length ? "<div>" + n.sources.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(" · ") + "</div>" : ""}</li>`, "Nothing yet")}</ul></details>
     <details><summary>Why Lantern asked each question</summary><ul>${li(S.reasons, r => `<li><b>${esc(r.q)}</b><div class="muted">${esc(r.why)}</div></li>`, "No questions yet")}</ul></details>
     <details><summary>Full conversation (${S.history.length})</summary><ul>${li(S.history, h => `<li>${h.question_original ? `<b>${esc(h.question_original)}</b><br>` : ""}${esc(h.answer_original)}${h.answer_english && h.answer_english !== h.answer_original ? `<div class="muted">${esc(h.answer_english)}</div>` : ""}</li>`, "Nothing recorded yet")}</ul></details>
-    ${usage ? `<details><summary>Cloud usage</summary><p>${usage}</p><p class="muted">Rough cost: each answer under ₹1 · storybook about ₹15 · film about ₹70 per 8 seconds.</p></details>` : ""}`;
+    ${usage ? `<details open><summary>Credit</summary><p>${usage}</p><p class="muted">The meter is an estimate: each answer about ₹4 (with research), each spoken question under ₹1, storybook about ₹15, film about ₹70 per 8 seconds. The exact bill is in Google Cloud Billing.</p></details>` : ""}`;
 }
 $("#navDetails").onclick = () => { renderDetails(); show("Details"); };
+$("#credit").onclick = () => { renderDetails(); show("Details"); };
+fetch("/api/usage").then(r => r.json()).then(u => { window.VEO_AUDIO = u.veo_audio; $("#filmPrice").textContent = "about " + inr(filmCost(+$("#shots").value)); }).catch(() => {});
+refreshCredit();
 $("#detBack").onclick = () => show(before);
 dots(); show("Home");
 </script>

@@ -119,9 +119,71 @@ def save_meter():
 load_meter()
 
 
+# ---------- Firestore (Firebase): session token ledgers and saved stories ----------
+
+USE_FIRESTORE = os.environ.get("USE_FIRESTORE", "1") == "1"
+_FS = {"client": None, "failed": False}
+_POOL = None
+
+
+def fs():
+    if not USE_FIRESTORE or _FS["failed"]:
+        return None
+    if _FS["client"] is None:
+        try:
+            from google.cloud import firestore
+            _FS["client"] = firestore.Client(project=PROJECT_ID)
+        except Exception as e:
+            print("firestore unavailable:", e, flush=True)
+            _FS["failed"] = True
+            return None
+    return _FS["client"]
+
+
+def in_background(fn, *args):
+    """Run a Firestore write without making the storyteller wait."""
+    global _POOL
+    if _POOL is None:
+        from concurrent.futures import ThreadPoolExecutor
+        _POOL = ThreadPoolExecutor(max_workers=4)
+    def safe():
+        try:
+            fn(*args)
+        except Exception as e:
+            print("firestore write failed:", str(e)[:300], flush=True)
+    _POOL.submit(safe)
+
+
+def ledger(sid: str) -> dict:
+    """This session's token ledger: memory first, then Firestore (survives restarts)."""
+    if sid not in SESSIONS:
+        led = {"spent": 0, "items": []}
+        db = fs()
+        if db is not None and sid != "anon":
+            try:
+                snap = db.collection("sessions").document(sid).get()
+                if snap.exists:
+                    d = snap.to_dict() or {}
+                    led = {"spent": int(d.get("spent", 0)), "items": list(d.get("items", []))}
+            except Exception as e:
+                print("firestore read failed:", str(e)[:300], flush=True)
+        SESSIONS[sid] = led
+    return SESSIONS[sid]
+
+
+def save_ledger(sid: str):
+    db = fs()
+    if db is None or sid == "anon":
+        return
+    led = SESSIONS.get(sid, {"spent": 0, "items": []})
+    data = {"spent": led["spent"], "items": led["items"][-300:], "limit": SESSION_TOKENS, "updated": int(time.time())}
+    in_background(lambda: db.collection("sessions").document(sid).set(data))
+
+
 def spend(kind: str, price: str | None = None):
     key = price or kind
-    led = SESSIONS.setdefault(CURRENT.get(), {"spent": 0, "items": []})
+    sid = CURRENT.get()
+    led = ledger(sid)
     if led["spent"] + COST_TOKENS[key] > SESSION_TOKENS:
         raise HTTPException(status_code=402, detail=f"This session's {SESSION_TOKENS:,} tokens are used up. "
                                                     "Start a new session to continue.")
@@ -134,6 +196,7 @@ def spend(kind: str, price: str | None = None):
     METER["spent_inr"] = round(METER.get("spent_inr", 0) + COST_INR[key], 2)
     METER.setdefault("calls", {})[key] = METER["calls"].get(key, 0) + 1
     save_meter()
+    save_ledger(sid)
 
 
 def run_ffmpeg(args):
@@ -762,14 +825,57 @@ async def speak(body: SpeakIn):
 
 @app.get("/api/usage")
 async def usage():
-    led = SESSIONS.get(CURRENT.get(), {"spent": 0, "items": []})
+    led = ledger(CURRENT.get())
     spent = METER.get("spent_inr", 0)
     return {"session": {"limit": SESSION_TOKENS, "spent": led["spent"], "left": SESSION_TOKENS - led["spent"],
                         "items": led["items"][-200:]}, "cost_tokens": COST_TOKENS, "cost_label": COST_LABEL,
             "used": USAGE, "limits": LIMITS, "credit_start_inr": CREDIT_START,
             "spent_inr": round(spent, 2), "left_inr": round(CREDIT_START - spent, 2),
-            "calls": METER.get("calls", {}), "cost_inr": COST_INR, "veo_audio": VEO_AUDIO,
+            "calls": METER.get("calls", {}), "cost_inr": COST_INR, "veo_audio": VEO_AUDIO, "store": "Firestore" if fs() is not None else "memory",
             "models": {"text": TEXT_MODEL, "image": IMAGE_MODEL, "video": VIDEO_MODEL, "voice": TTS_MODELS[0]}}
+
+
+class StoryIn(BaseModel):
+    id: str
+    title: str = ""
+    teller: str = ""
+    listener: str = ""
+    language: str = ""
+    segments: list = []
+    formats: list = []
+
+
+@app.post("/api/stories")
+async def save_story(body: StoryIn):
+    """Save the approved story text (not pictures or video) to Firestore for this session."""
+    sid, db = CURRENT.get(), fs()
+    if db is None or sid == "anon":
+        return {"saved": False}
+    doc = {"session": sid, "title": body.title[:200], "teller": body.teller[:120], "listener": body.listener[:120],
+           "language": body.language[:40], "formats": [f for f in body.formats if f in ("book", "film")],
+           "segments": [{"kind": str(x.get("kind", "memory"))[:20], "original": str(x.get("original", ""))[:4000],
+                         "english": str(x.get("english", ""))[:4000], "origin": str(x.get("origin", ""))[:20],
+                         "sources": [{"title": str(y.get("title", ""))[:200], "uri": str(y.get("uri", ""))[:500]}
+                                     for y in (x.get("sources") or [])[:6] if isinstance(y, dict)]}
+                        for x in body.segments[:60] if isinstance(x, dict)],
+           "created": int(time.time())}
+    key = hashlib.sha1((sid + "|" + body.id).encode()).hexdigest()[:24]
+    in_background(lambda: db.collection("stories").document(key).set(doc))
+    return {"saved": True}
+
+
+@app.get("/api/stories")
+async def list_stories():
+    sid, db = CURRENT.get(), fs()
+    if db is None or sid == "anon":
+        return {"stories": []}
+    try:
+        docs = [d.to_dict() for d in db.collection("stories").where("session", "==", sid).limit(50).stream()]
+    except Exception as e:
+        print("firestore list failed:", str(e)[:300], flush=True)
+        return {"stories": []}
+    docs.sort(key=lambda d: d.get("created", 0), reverse=True)
+    return {"stories": docs}
 
 
 @app.exception_handler(HTTPException)

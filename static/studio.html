@@ -89,7 +89,7 @@
       <div class="action-foot"><div class="out-actions" id="outActions"></div><button class="cta" id="otherFormat">Also make a short film →</button></div>
     </section>
 
-    <section class="screen" id="view-library"><div class="screen-head"><span class="eyebrow">This session</span><h1>My stories</h1><p class="desc">Only stories made in this session appear here. Save the PDF or video to keep them.</p></div><div class="library-list" id="libraryList"></div><div class="action-foot"><button class="cta" id="newStory">＋ Record a new story</button></div></section>
+    <section class="screen" id="view-library"><div class="screen-head"><span class="eyebrow">This session</span><h1>My stories</h1><p class="desc">Stories from this session. Their words are kept safely; save the PDF or video to keep pictures and film.</p></div><div class="library-list" id="libraryList"></div><div class="action-foot"><button class="cta" id="newStory">＋ Record a new story</button></div></section>
     <section class="screen" id="view-details"><div class="screen-head"><span class="eyebrow">For the family helper</span><h1>Interview details</h1><p class="desc">The storyteller never needs to read this screen.</p></div><div class="detail-body" id="detailBody"></div><div class="action-foot"><button class="cta" id="detailsBack">Back to conversation →</button></div></section>
   </main>
   <div class="overlay" id="typeOverlay" hidden><div class="sheet"><button class="iconbtn" id="cancelType" style="align-self:flex-end" aria-label="Close">✕</button><h3 id="typeTitle">Write what they said</h3><p id="typeDesc">Typing is optional. We want to hear the story in their own words first.</p><textarea class="field" id="typedAnswer" placeholder="I remember…"></textarea><button class="cta" id="sendType">Save →</button></div></div>
@@ -565,13 +565,23 @@ function renderResult(which, item = null){
 
 /* ---------- my stories: this session only ---------- */
 function saveStory(){ const it = {id: S.id, title: S.approved.title, teller: teller(), story: S.approved, book: S.book, film: S.film, recordings: S.clips, date: new Date().toISOString()};
-  S.stories = S.stories.filter(x => x.id !== it.id); S.stories.unshift(it); }
-function renderLibrary(){
-  $("#libraryList").innerHTML = S.stories.length ? S.stories.map((x, i) => `<button class="story-row" data-open="${i}"><span><b>${esc(x.title)}</b><small>${esc(x.teller)} · ${[x.book && "Storybook", x.film && "Film"].filter(Boolean).join(" + ")}</small></span><span>›</span></button>`).join("")
+  S.stories = S.stories.filter(x => x.id !== it.id); S.stories.unshift(it);
+  F("/api/stories", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({id: it.id, title: it.title, teller: it.teller,
+    listener: S.approved.listener || "", language: S.lang || "", segments: S.approved.segments, formats: [it.book && "book", it.film && "film"].filter(Boolean)})}).catch(() => {}); }
+async function loadSaved(){
+  try { const r = await (await F("/api/stories")).json();
+    for (const d of (r.stories || [])){ if (S.stories.some(x => x.title === d.title && x.teller === d.teller)) continue;
+      S.stories.push({id: "saved-" + d.created, title: d.title, teller: d.teller, saved: true, formats: d.formats || [],
+        story: {title: d.title, teller: d.teller, listener: d.listener, segments: d.segments || []}, book: {cover: null, pages: []}, film: null, recordings: []}); }
+  } catch(e) {}
+}
+async function renderLibrary(){
+  await loadSaved();
+  $("#libraryList").innerHTML = S.stories.length ? S.stories.map((x, i) => `<button class="story-row" data-open="${i}"><span><b>${esc(x.title)}</b><small>${esc(x.teller)} · ${x.saved ? "Saved words" : [x.book && "Storybook", x.film && "Film"].filter(Boolean).join(" + ")}</small></span><span>›</span></button>`).join("")
     : '<div class="segment"><p>No stories yet in this session. Record a memory to begin.</p></div>';
   $$("[data-open]").forEach(b => b.onclick = () => { const x = S.stories[+b.dataset.open]; renderResult(x.book ? "book" : "film", x); go("result"); });
 }
-$("#libraryButton").onclick = () => { if (["talk", "family"].includes(S.view) && recorder && recorder.state !== "inactive"){ sayToast("Stop recording first."); return; } renderLibrary(); go("library"); };
+$("#libraryButton").onclick = async () => { if (["talk", "family"].includes(S.view) && recorder && recorder.state !== "inactive"){ sayToast("Stop recording first."); return; } go("library"); await renderLibrary(); };
 $("#newStory").onclick = () => { S.photos = []; renderPhotos(); go("setup"); };
 
 /* ---------- details and tokens ---------- */

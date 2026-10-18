@@ -12,7 +12,7 @@ Built for the Google Cloud AI Builder Cup 2026, theme **Media, Content & Digital
 2. **Tell your story.** One big microphone. The speaker's words appear live on screen with a live translation into another language. After each answer Lantern replies with a short, caring acknowledgement and one gentle follow-up question in a warm voice. Meanwhile it updates a structured memory (people, places, a timeline with certainty), researches the history with Google Search, finds gaps, and tracks a six-point Story Readiness Check. The storyteller can skip any question, type instead, or stop at any time.
 3. **Review together.** The conversation becomes a story split into *In their words* (lived or heard from family), *History* (with sources) and *Not sure yet*. The family can listen to it, edit, relabel, remove or add lines, and approves it before anything is generated.
 4. **Create a keepsake.** *Storybook*: their original words with translation, illustrations, restored photo and history with citations, saved as a PDF. *Short film*: 8-second Veo scenes chained by their last frame, narrated in the storyteller's language, ending with a moment of their own recorded voice, saved as an MP4. The other format can be made later from the same approved story.
-5. **Share.** Save or share the PDF or MP4 straight from the phone. *My stories* lists what was made in this session.
+5. **Share.** Save or share the PDF or MP4 straight from the phone. The approved words are kept in Cloud Firestore, so *My stories* still has them after a page refresh.
 
 **Principles:** restore and retell, never impersonate. Unknowns stay unknown, no invented words, no cloned voice, no animated real faces.
 
@@ -27,6 +27,7 @@ Built for the Google Cloud AI Builder Cup 2026, theme **Media, Content & Digital
 | Photo restoration, illustrations, film opening frame | `gemini-nano-banana-2.1` |
 | Film scenes chained by last frame | Veo: `veo-3.1-fast-generate-001`, joined with ffmpeg |
 | Warm spoken questions, story read-aloud, film narration | Gemini TTS: `gemini-3.1-flash-tts-preview` (fallback `gemini-2.5-flash-tts`) |
+| Saved stories and each session's token ledger | Cloud Firestore (Firebase), written in the background so nobody waits |
 | Hosting, credit meter | Cloud Run (one service for app and API), Cloud Storage |
 
 The live on-screen transcript while someone is speaking uses the browser's speech recognition; the saved transcript and translation come from Gemini.
@@ -39,7 +40,8 @@ Every visitor session gets **10,000 tokens** (1 token ≈ ₹0.10), shown at the
 
 ```bash
 gcloud config set project YOUR_PROJECT_ID
-gcloud services enable aiplatform.googleapis.com run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+gcloud services enable aiplatform.googleapis.com run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com firestore.googleapis.com
+gcloud firestore databases create --location=nam5   # once
 gcloud run deploy lantern --source . --region us-central1 --allow-unauthenticated \
   --max-instances 1 --memory 1Gi --timeout 600 --set-env-vars PROJECT_ID=YOUR_PROJECT_ID
 ```
@@ -47,7 +49,7 @@ gcloud run deploy lantern --source . --region us-central1 --allow-unauthenticate
 ## Project layout
 
 ```
-main.py             FastAPI app: interview, research, story, images, film, voice, tokens
+main.py             FastAPI app: interview, research, story, images, film, voice, tokens, Firestore
 static/index.html   Landing page
 static/studio.html  The storytelling studio (phone-first)
 static/style.css    Design system

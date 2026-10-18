@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lantern</title>
-<meta name="description" content="Turn Grandma's spoken stories into a bilingual, history-grounded family storybook.">
+<meta name="description" content="Capture a family memory by voice, research it, review it, and turn it into a storybook or a short film.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Cpath d='M9 8h16l2 4v12l-2 4H9l-2-4V12z' fill='%23E8930C'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Mukta:wght@400;500;700&family=Tiro+Devanagari+Hindi&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -12,14 +12,14 @@
 :root{
   --bg:#F4F3FA; --surface:#FFFFFF; --sunk:#ECEAF6; --ink:#1D1B3A; --muted:#5D5A7C; --line:#DCD9EC;
   --accent:#E8930C; --accent-ink:#9A5A00; --accent-soft:#FCEBCD; --indigo:#3B3486; --indigo-soft:#E4E1F7;
-  --good:#1F7A4D; --bad:#B3261E;
+  --good:#1F7A4D; --good-soft:#DDF1E6; --warn:#9A6400; --warn-soft:#FFF1D6; --bad:#B3261E;
   --display:"Young Serif", Georgia, serif; --body:"Mukta","Segoe UI",system-ui,sans-serif;
-  --hindi:"Tiro Devanagari Hindi","Noto Serif Devanagari","Mukta",serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
-  color-scheme:light;
+  --mono:"IBM Plex Mono",ui-monospace,monospace; color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root{
   --bg:#12111F; --surface:#1C1A31; --sunk:#16152A; --ink:#EEEDF8; --muted:#A7A4C4; --line:#2F2C4C;
-  --accent:#F2A93B; --accent-ink:#F6C06E; --accent-soft:#3A2A12; --indigo:#AEA7F2; --indigo-soft:#2A2650; --good:#5FCB93; --bad:#F28B82; color-scheme:dark}}
+  --accent:#F2A93B; --accent-ink:#F6C06E; --accent-soft:#3A2A12; --indigo:#AEA7F2; --indigo-soft:#2A2650;
+  --good:#5FCB93; --good-soft:#163527; --warn:#F2C46B; --warn-soft:#3A2E12; --bad:#F28B82; color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
@@ -28,76 +28,115 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.app{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-header{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.app{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
 .brand{display:flex;gap:10px;align-items:center}
 .brand h1{font-size:28px}
 .brand small{display:block;color:var(--muted);font-size:13px;margin-top:-4px}
-nav{display:flex;gap:6px}
-nav button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;color:var(--muted)}
-nav button[aria-current="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;list-style:none;margin:0;padding:0}
+.steps li{font-size:12px;text-align:center;color:var(--muted);padding-top:6px;border-top:3px solid var(--line)}
+.steps li.on{color:var(--ink);font-weight:700;border-color:var(--accent)}
+.steps li.done{border-color:var(--good)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
 .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
 .muted{color:var(--muted)}
+.small{font-size:14px}
 label.field{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
 input[type=text],select,textarea{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);color:var(--ink);width:100%}
-textarea{min-height:70px;resize:vertical}
+textarea{min-height:64px;resize:vertical}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:420px){.grid2{grid-template-columns:1fr}}
+@media (max-width:460px){.grid2{grid-template-columns:1fr}}
 .btn{border:0;border-radius:999px;padding:12px 18px;font-weight:700;background:var(--accent);color:#2A1700}
 .btn.ghost{background:none;border:1px solid var(--line);color:var(--ink);font-weight:500}
 .btn.dark{background:var(--ink);color:var(--surface)}
+.btn.sm{padding:6px 12px;font-size:14px}
 .btn:disabled{opacity:.5;cursor:default}
 .cost{font-family:var(--mono);font-size:12px;color:var(--accent-ink)}
-.photo{border-radius:14px;overflow:hidden;background:var(--sunk);aspect-ratio:4/3;display:grid;place-items:center;max-width:100%}
-.photo img{width:100%;height:100%;object-fit:cover;display:block}
-.pick{border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--muted);cursor:pointer}
+.err{color:var(--bad);font-size:14px}
+.pick{position:relative;border:2px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--muted);cursor:pointer;display:block}
 .pick input{position:absolute;opacity:0;width:1px;height:1px}
-.chat{display:flex;flex-direction:column;gap:10px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumbs figure{margin:0;position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;background:var(--sunk)}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.thumbs button{position:absolute;top:2px;right:2px;border:0;border-radius:50%;width:22px;height:22px;background:rgba(0,0,0,.6);color:#fff;font-size:13px;line-height:1}
+/* interview */
+.split{display:grid;grid-template-columns:1fr;gap:14px}
+.chat{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto;padding-right:4px}
 .msg{max-width:90%;padding:10px 12px;border-radius:14px}
 .msg .o{font-size:17px;line-height:1.55}
 .msg .e{font-size:13px;color:var(--muted);margin-top:2px}
 .msg .who{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .msg.ai{background:var(--indigo-soft);align-self:flex-start;border-bottom-left-radius:4px}
 .msg.me{background:var(--accent-soft);align-self:flex-end;border-bottom-right-radius:4px}
-[lang="hi"],.deva{font-family:var(--hindi)}
 .rec{width:84px;height:84px;border-radius:50%;border:0;background:var(--bad);color:#fff;font-weight:700;display:grid;place-items:center;margin:0 auto;box-shadow:0 0 0 0 rgba(179,38,30,.5)}
 .rec.on{animation:pulse 1.4s infinite}
 @keyframes pulse{70%{box-shadow:0 0 0 18px rgba(179,38,30,0)}100%{box-shadow:0 0 0 0 rgba(179,38,30,0)}}
 .status{text-align:center;font-size:14px;color:var(--muted);min-height:1.5em}
-.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.steps li{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;color:var(--muted)}
-.steps li::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex:none}
-.steps li.on{color:var(--ink);border-color:var(--accent)}
-.steps li.on::before{border-color:var(--accent);border-top-color:transparent;animation:spin .8s linear infinite}
-.steps li.done{color:var(--ink)}
-.steps li.done::before{background:var(--good);border-color:var(--good)}
-.steps li.fail::before{background:var(--bad);border-color:var(--bad)}
+.research{background:var(--sunk);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.research ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.research a,.src a{color:var(--indigo);font-size:12px;word-break:break-word}
+.nb{display:flex;flex-direction:column;gap:10px}
+.nb details{background:var(--sunk);border-radius:12px;padding:8px 12px}
+.nb summary{cursor:pointer;font-weight:700;font-size:14px}
+.nb ul{margin:6px 0 2px;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.nb a{color:var(--indigo);font-size:12px;word-break:break-word}
+.layer{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.cert{font-size:11px;padding:1px 6px;border-radius:999px;background:var(--indigo-soft);color:var(--indigo)}
+.ready{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:13px;color:var(--muted)}
+.ready span::before{content:"○ ";color:var(--line)}
+.ready span.ok{color:var(--ink)}.ready span.ok::before{content:"● ";color:var(--good)}
+.reason{font-size:12px;color:var(--muted);font-style:italic;margin-top:4px}
+.closing{background:var(--good-soft);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.check{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:8px 10px;font-size:14px}
+/* review */
+.seg{border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.seg.fact{background:var(--good-soft);border-color:transparent}
+.seg.uncertain{background:var(--warn-soft);border-color:transparent}
+.badge{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--indigo-soft);color:var(--indigo)}
+.seg.fact .badge{background:var(--good);color:var(--surface)}
+.seg.uncertain .badge{background:var(--warn);color:var(--surface)}
+.seg textarea{min-height:52px;background:var(--surface)}
+.legend{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+/* create */
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:460px){.choices{grid-template-columns:1fr}}
+.choice{border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.choice h3{font-size:19px}
+.prog{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.prog li{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:15px}
+.prog li::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--line);flex:none}
+.prog li.on{color:var(--ink);border-color:var(--accent)}
+.prog li.on::before{border-color:var(--accent);border-top-color:transparent;animation:spin .8s linear infinite}
+.prog li.done{color:var(--ink)}
+.prog li.done::before{background:var(--good);border-color:var(--good)}
+.prog li.fail::before{background:var(--bad);border-color:var(--bad)}
 @keyframes spin{to{transform:rotate(360deg)}}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-size:13px;padding:3px 10px;border-radius:999px;background:var(--indigo-soft);color:var(--indigo)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px}
-.seg button{border:0;background:none;padding:5px 12px;border-radius:999px;font-size:13px;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
-.words{border-left:3px solid var(--accent);padding-left:14px;display:flex;flex-direction:column;gap:12px}
-.words .o{font-size:19px;line-height:1.6}
-.words .e{font-size:15px;color:var(--muted)}
-.pages{display:grid;grid-auto-flow:column;grid-auto-columns:88%;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}
-.page{scroll-snap-align:start;margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--sunk)}
-.page img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
-.page figcaption{padding:8px 12px;font-size:14px;background:var(--surface)}
-.then{background:var(--sunk);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
-.then ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:15px}
-.then a{color:var(--indigo);font-size:13px;word-break:break-word}
-video{width:100%;border-radius:14px;display:block}
-.err{color:var(--bad);font-size:14px}
-.moment{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:14px}
-.moment span{display:block;font-size:13px;color:var(--muted)}
-.switch{width:46px;height:26px;border-radius:999px;border:0;background:var(--line);position:relative;flex:none}
-.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);transition:left .2s}
-.switch[aria-checked="true"]{background:var(--good)}
-.switch[aria-checked="true"]::after{left:23px}
+/* outputs */
+.book{display:flex;flex-direction:column;gap:14px}
+.book .cover{border-radius:14px;overflow:hidden;background:var(--sunk)}
+.book .cover img{display:block;width:100%;max-height:420px;object-fit:cover}
+.book figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.book figure img{display:block;width:100%}
+.book figcaption{padding:8px 12px;font-size:14px;background:var(--surface)}
+.mem .o{font-size:19px;line-height:1.6}
+.mem .e{font-size:15px;color:var(--muted)}
+.mem{border-left:3px solid var(--accent);padding-left:14px}
+.factbox{background:var(--good-soft);border-radius:12px;padding:10px 12px;font-size:15px}
+.uncbox{background:var(--warn-soft);border-radius:12px;padding:10px 12px;font-size:15px}
+.tabs{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px}
+.tabs button{border:0;background:none;padding:5px 12px;border-radius:999px;font-size:13px;color:var(--muted)}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.reel{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.reel figure{margin:0;border-radius:10px;overflow:hidden;background:var(--sunk);font-size:12px}
+.reel img,.reel video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.reel figcaption{padding:4px 8px;color:var(--muted)}
+video.film{width:100%;border-radius:14px;display:block;background:#000}
+/* collection */
+.item{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:14px}
+.item img{width:64px;height:64px;border-radius:10px;object-fit:cover;background:var(--sunk);flex:none}
+.item div{flex:1;min-width:0}
+.item b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 footer{font-size:12px;color:var(--muted);text-align:center}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -109,299 +148,474 @@ footer{font-size:12px;color:var(--muted);text-align:center}
       <svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true"><rect x="14" y="2" width="6" height="4" rx="1" fill="var(--muted)"/><path d="M9 8h16l2 4v12l-2 4H9l-2-4V12z" fill="var(--accent)"/><path d="M12 12h10v12H12z" fill="var(--accent-soft)" opacity=".7"/><rect x="11" y="28" width="12" height="3" rx="1" fill="var(--muted)"/></svg>
       <div><h1>Lantern</h1><small>Tell me again.</small></div>
     </div>
-    <nav>
-      <button id="nav-story" data-view="v-start" aria-current="true">Story</button>
-      <button id="nav-remember" data-view="v-remember" aria-current="false">Remember</button>
-    </nav>
+    <button class="btn ghost sm" id="openCollection">Family collection</button>
   </header>
+  <ol class="steps" id="stepbar">
+    <li data-s="1">Capture</li><li data-s="2">Interview</li><li data-s="3">Review</li><li data-s="4">Create</li><li data-s="5">Keep</li>
+  </ol>
 
-  <!-- START -->
-  <section class="card" id="v-start">
-    <div><div class="eyebrow">Step 1</div><h2 style="font-size:24px">Show a photo, then let them talk</h2></div>
-    <p class="muted" style="margin:0">Lantern looks at an old photo or heirloom and interviews your grandparent in their own language. You get a storybook page in their words, with an English translation, pictures, and the history around it.</p>
+  <!-- 1 CAPTURE -->
+  <section class="card" id="v1">
+    <div><div class="eyebrow">1 · Capture a memory</div><h2 style="font-size:24px">Let them tell it in their own voice</h2></div>
+    <p class="muted" style="margin:0">Lantern listens, researches the places and dates as they talk, and asks the next question. A photo or object is optional, but it helps memories come back.</p>
     <div class="grid2">
-      <label class="field">Who is telling the story?<input type="text" id="teller" value="Nani"></label>
+      <label class="field">Who is sharing the memory?<input type="text" id="teller" value="Nani"></label>
       <label class="field">Their language
         <select id="language">
           <option value="auto">Detect automatically</option>
           <option>Hindi</option><option>Bengali</option><option>Tamil</option><option>Telugu</option><option>Marathi</option>
-          <option>Gujarati</option><option>Punjabi</option><option>Mandarin Chinese</option><option>Cantonese</option>
+          <option>Gujarati</option><option>Punjabi</option><option>Urdu</option><option>Mandarin Chinese</option><option>Cantonese</option>
           <option>Japanese</option><option>Korean</option><option>Tagalog</option><option>Bahasa Indonesia</option>
           <option>Thai</option><option>Vietnamese</option><option>English</option>
         </select>
       </label>
     </div>
-    <label class="pick" id="pickLabel" for="photoInput">
-      <input type="file" id="photoInput" accept="image/*" capture="environment">
-      <div id="pickText"><b>Take or choose a photo</b><br><span style="font-size:14px">An old family photo, a letter, a ring, a trunk</span></div>
-    </label>
-    <div class="photo" id="photoPreview" hidden></div>
-    <label class="field" style="flex-direction:row;gap:8px;align-items:flex-start;color:var(--ink)"><input type="checkbox" id="consent" style="margin-top:5px"><span>I asked permission, and they are happy to be recorded and to have their story kept for the family.</span></label>
+    <label class="pick" for="photoInput"><input type="file" id="photoInput" accept="image/*" multiple>
+      <b>Add old photos or a meaningful object (optional)</b><br><span class="small">Up to 6 photos. They stay with this story.</span></label>
+    <div class="thumbs" id="thumbs"></div>
+    <label class="row small" style="align-items:flex-start;gap:8px"><input type="checkbox" id="consent" style="margin-top:5px"><span>I asked permission. They are happy to be recorded and for this story to be kept for the family.</span></label>
     <button class="btn" id="begin" disabled>Begin the interview</button>
-    <div class="err" id="startErr" hidden></div>
+    <div class="closing" style="background:var(--indigo-soft)">
+      <b>Watch the interview loop work</b>
+      <span class="small">A fictional grandmother tells a family story set during the 1947 Partition of India. Lantern researches, finds gaps and asks; she answers; it repeats until the Story Readiness Check says the story is complete. The history is real; the family is fictional. <span class="cost">about ₹35</span></span>
+      <div class="row"><button class="btn sm" id="demoPartition">Play the Partition demo</button>
+      <button class="btn ghost sm" id="example">Or start from a single memory: leaving Guangzhou in wartime</button></div>
+    </div>
+    <div class="err" id="e1" hidden></div>
   </section>
 
-  <!-- INTERVIEW -->
-  <section class="card" id="v-interview" hidden>
-    <div class="row" style="justify-content:space-between"><div><div class="eyebrow">Step 2 · Interview</div><h2 style="font-size:22px" id="ivTitle">Talking with Nani</h2></div><span class="cost" id="turnCount"></span></div>
+  <!-- 2 INTERVIEW -->
+  <section class="card" id="v2" hidden>
+    <div class="row" style="justify-content:space-between"><div><div class="eyebrow">2 · Research &amp; interview</div><h2 style="font-size:22px" id="ivTitle">Talking with Nani</h2></div><span class="cost" id="turnCount"></span></div>
+    <div class="closing" id="demoBar" hidden style="background:var(--indigo-soft)"><div class="row" style="justify-content:space-between"><b id="demoCycle">Demo · cycle 1</b><button class="btn ghost sm" id="demoPause">Pause</button></div>
+      <span class="small">Fictional storyteller for demonstration. Real historical research. Each cycle: integrate answer → research → find gaps → readiness check → one question.</span></div>
     <div class="chat" id="chat" aria-live="polite"></div>
     <button class="rec" id="rec" aria-label="Start recording">Record</button>
-    <div class="status" id="recStatus">Tap Record, hand over the phone, tap again when they finish.</div>
-    <details><summary class="muted" style="cursor:pointer;font-size:14px">No microphone? Type the answer instead</summary>
+    <div class="status" id="recStatus">Tap Record, let them talk, tap Stop when they finish.</div>
+    <details><summary class="muted small" style="cursor:pointer">No microphone? Type the answer instead</summary>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px"><textarea id="typed" placeholder="Type what they said, in any language"></textarea><button class="btn ghost" id="sendTyped">Send answer</button></div>
     </details>
-    <div class="row"><button class="btn dark" id="finish" disabled>Finish and make the story</button><span class="cost">Story uses about ₹15 of credit</span></div>
-    <div class="err" id="ivErr" hidden></div>
-  </section>
-
-  <!-- MAKING -->
-  <section class="card" id="v-making" hidden>
-    <div><div class="eyebrow">Step 3</div><h2 style="font-size:22px">Making the story page</h2></div>
-    <ol class="steps" id="steps">
-      <li>Writing the chapter in their own words, with English</li>
-      <li>Finding what the world was like then, with sources</li>
-      <li>Restoring the photo for the cover</li>
-      <li>Drawing three picture pages</li>
-    </ol>
-    <div class="err" id="mkErr" hidden></div>
-  </section>
-
-  <!-- STORY -->
-  <section class="card" id="v-story" hidden>
-    <div class="photo" id="cover"></div>
-    <div><h2 style="font-size:26px;line-height:1.15" id="sTitle"></h2><div class="muted" style="font-size:14px" id="sMeta"></div></div>
-    <div class="chips" id="sChips"></div>
-    <div class="row" style="justify-content:space-between">
-      <div class="seg" role="group" aria-label="Language">
-        <button aria-pressed="true" data-l="both" id="l-both">Both</button>
-        <button aria-pressed="false" data-l="o" id="l-o">Original</button>
-        <button aria-pressed="false" data-l="e" id="l-e">English</button>
-      </div>
-      <button class="btn ghost" id="playVoice">▶ Hear their voice</button>
+    <div class="row"><button class="btn ghost sm" id="skipQ" disabled>Skip this question</button><span class="muted small">They can skip anything, or stop at any time.</span></div>
+    <div class="closing" id="closing" hidden><b>Lantern thinks there's enough for a story.</b><span class="small">Add anything else, or review what's been collected.</span>
+      <div class="row"><button class="btn sm" id="closeReview">Review the story</button><button class="btn ghost sm" id="keepGoing">Keep talking</button></div></div>
+    <div class="nb" id="notebook" hidden>
+      <div class="eyebrow">Lantern's notebook · updated after every answer</div>
+      <details open><summary>Story readiness</summary><div class="ready" id="nbReady"></div></details>
+      <details open><summary>Timeline</summary><ul id="nbTimeline"></ul></details>
+      <details><summary>People and places</summary><ul id="nbPeople"></ul></details>
+      <details open><summary>Still missing</summary><ul id="nbGaps"></ul></details>
+      <details><summary>Historical research</summary><ul id="nbResearch"></ul></details>
     </div>
-    <div class="words" id="sWords"></div>
-    <div><div class="eyebrow" style="margin-bottom:8px">Picture pages · swipe</div><div class="pages" id="sPages"></div></div>
-    <div class="then"><h3 style="font-size:18px">The world then</h3><ol id="sFacts"></ol><div id="sSources"></div>
-      <div class="muted" style="font-size:12px">Added from cited sources. Kept separate from their words and never used to change them.</div></div>
-    <div id="clipBox" style="display:flex;flex-direction:column;gap:8px">
-      <div class="row"><button class="btn ghost" id="animate">Bring a scene to life</button><span class="cost">Uses about ₹70 of credit · 8 s clip · no faces</span></div>
-      <div class="status" id="clipStatus"></div>
+    <div class="row"><button class="btn dark" id="toReview" disabled>Stop and review the story</button><span class="cost">about ₹1</span></div>
+    <div class="err" id="e2" hidden></div>
+  </section>
+
+  <!-- 3 REVIEW -->
+  <section class="card" id="v3" hidden>
+    <div><div class="eyebrow">3 · Reconstruct &amp; review</div><h2 style="font-size:22px">Check the story before anything is made</h2></div>
+    <p class="muted small" style="margin:0">Edit any line, remove what's wrong, add what was missed. Nothing is generated until you approve.</p>
+    <div class="legend"><span class="badge">Memory</span> their own words <span class="badge" style="background:var(--good);color:var(--surface)">Fact</span> checked with sources <span class="badge" style="background:var(--warn);color:var(--surface)">Uncertain</span> unclear or doesn't line up</div>
+    <label class="field">Title<input type="text" id="storyTitle"></label>
+    <div id="segments" style="display:flex;flex-direction:column;gap:10px"></div>
+    <button class="btn ghost sm" id="addSeg" style="align-self:flex-start">+ Add a memory line</button>
+    <button class="btn" id="approve">Approve this story</button>
+    <div class="err" id="e3" hidden></div>
+  </section>
+
+  <!-- 4 CREATE -->
+  <section class="card" id="v4" hidden>
+    <div><div class="eyebrow">4 · Choose what to make</div><h2 style="font-size:22px">Same story, two ways to keep it</h2></div>
+    <p class="muted small" style="margin:0">Make one now and the other later. The interview never has to be repeated.</p>
+    <div class="choices">
+      <div class="choice"><h3>Storybook</h3><p class="muted small" style="margin:0">Their words with translation, restored photo, three illustrations, history with citations.</p>
+        <button class="btn" id="makeBook">Make the storybook</button><span class="cost">about ₹15</span></div>
+      <div class="choice"><h3>Short film</h3><p class="muted small" style="margin:0">A storyboard of 8-second clips. Each clip starts from the last frame of the one before, then they're joined into one film.</p>
+        <label class="field">Length<select id="shots"><option value="2">2 clips · 16 s · about ₹140</option><option value="3" selected>3 clips · 24 s · about ₹210</option><option value="4">4 clips · 32 s · about ₹280</option></select></label>
+        <label class="pick" for="filmPhotos" style="padding:10px"><input type="file" id="filmPhotos" accept="image/*" multiple><span class="small"><b>Add more photos for the film</b> (optional)</span></label>
+        <button class="btn" id="makeFilm">Make the short film</button></div>
     </div>
-    <div><div class="eyebrow" style="margin-bottom:6px">Ask them next time</div>
-      <form class="row" id="askForm"><input type="text" id="askInput" placeholder="Did Nani have a dog?" style="flex:1;min-width:0"><button class="btn" type="submit">Save</button></form>
-      <div class="muted" id="askSaved" style="font-size:14px" hidden>Saved. Lantern will ask this in the next interview.</div></div>
-    <button class="btn ghost" id="newStory">Start another story</button>
+    <ul class="prog" id="prog" hidden></ul>
+    <div class="err" id="e4" hidden></div>
+    <div id="outTabs" class="row" hidden><div class="tabs"><button id="tabBook" aria-pressed="true">Storybook</button><button id="tabFilm" aria-pressed="false">Short film</button></div></div>
+    <div id="bookOut" class="book" hidden></div>
+    <div id="filmOut" hidden style="display:flex;flex-direction:column;gap:10px"></div>
+    <div class="row" id="keepRow" hidden><button class="btn dark" id="keep">Save to family collection</button></div>
   </section>
 
-  <!-- REMEMBER -->
-  <section class="card" id="v-remember" hidden>
-    <div><div class="eyebrow">Bring it back</div><h2 style="font-size:22px">When should stories return?</h2></div>
-    <p class="muted" style="margin:0">Pick the days the family wants to hear them. Lantern asks first and never plays anything on its own.</p>
-    <div class="moment"><div><b>Their birthday</b><span>Shared with the family group</span></div><button class="switch" role="switch" aria-checked="true" aria-label="Birthday"></button></div>
-    <div class="moment"><div><b>Festivals of remembrance</b><span>Pitru Paksha, Qingming, Obon, Chuseok, Undas</span></div><button class="switch" role="switch" aria-checked="true" aria-label="Festivals of remembrance"></button></div>
-    <div class="moment"><div><b>Family gatherings</b><span>Play on the big screen</span></div><button class="switch" role="switch" aria-checked="false" aria-label="Family gatherings"></button></div>
-    <div class="moment"><div><b>On this day</b><span>When the story happened</span></div><button class="switch" role="switch" aria-checked="false" aria-label="On this day"></button></div>
-    <div><div class="eyebrow" style="margin-bottom:6px">Questions waiting</div><ul id="qList" style="margin:0;padding-left:20px"></ul></div>
-    <p class="muted" style="font-size:13px;margin:0">Prototype: these choices are saved in this browser. Scheduled delivery is the next step.</p>
+  <!-- 5 KEEP -->
+  <section class="card" id="v5" hidden>
+    <div><div class="eyebrow">5 · Preserve &amp; share</div><h2 style="font-size:22px">Family collection</h2></div>
+    <p class="muted small" style="margin:0">Each story keeps the original recordings, the approved narrative, and the storybook or film. Saved on this device.</p>
+    <div id="collection" style="display:flex;flex-direction:column;gap:10px"></div>
+    <div id="detail" style="display:flex;flex-direction:column;gap:10px" hidden></div>
+    <button class="btn ghost" id="startNew">Capture a new memory</button>
   </section>
 
-  <footer>Lantern restores and retells. It never writes words they did not say, never clones a voice, never animates a real face.</footer>
+  <footer>Lantern restores and retells. It keeps their words, never clones a voice, and never animates a real face.</footer>
 </div>
 
 <script>
 const $ = s => document.querySelector(s);
-const state = { photo: null, history: [], clips: [], story: null, pages: [], cover: null };
-let lang = "both";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const S = { id: null, photos: [], history: [], research: [], memory: {}, gaps: [], readiness: {}, clips: [], story: null, approved: null,
+            book: null, film: null, lang: "auto" };
 
-function show(id){
-  ["v-start","v-interview","v-making","v-story","v-remember"].forEach(v => $("#"+v).hidden = v !== id);
-  $("#nav-story").setAttribute("aria-current", String(id !== "v-remember"));
-  $("#nav-remember").setAttribute("aria-current", String(id === "v-remember"));
-  window.scrollTo(0,0);
+/* ---------- navigation ---------- */
+function show(n){
+  for (let i = 1; i <= 5; i++) $("#v"+i).hidden = i !== n;
+  document.querySelectorAll("#stepbar li").forEach(li => { const s = +li.dataset.s;
+    li.className = s === n ? "on" : (s < n ? "done" : ""); });
+  window.scrollTo(0, 0);
 }
-$("#nav-remember").onclick = () => { renderQuestions(); show("v-remember"); };
-$("#nav-story").onclick = () => show(state.story ? "v-story" : (state.history.length ? "v-interview" : "v-start"));
-function err(el, msg){ el.textContent = msg; el.hidden = !msg; }
-
-async function api(path, opts){
-  const r = await fetch(path, opts);
-  let data = {};
-  try { data = await r.json(); } catch(e) {}
-  if (!r.ok) throw new Error(data.error || data.detail || ("Request failed (" + r.status + ")"));
-  return data;
+const err = (n, m) => { const el = $("#e"+n); el.textContent = m || ""; el.hidden = !m; };
+async function api(path, opts = {}){
+  if (opts.json){ opts.method = "POST"; opts.headers = {"Content-Type":"application/json"}; opts.body = JSON.stringify(opts.json); }
+  const r = await fetch(path, opts); let d = {};
+  try { d = await r.json(); } catch(e) {}
+  if (!r.ok) throw new Error(d.error || d.detail || ("Request failed (" + r.status + ")"));
+  return d;
 }
 
-/* ---- photo: shrink to 1024 px JPEG so calls stay small and cheap ---- */
-function shrink(file){
-  return new Promise((res, rej) => {
-    const img = new Image();
-    img.onload = () => {
-      const s = Math.min(1, 1024 / Math.max(img.width, img.height));
+/* ---------- 1 capture ---------- */
+function shrink(file, max = 1024){
+  return new Promise((res, rej) => { const img = new Image();
+    img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height));
       const c = document.createElement("canvas"); c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
-      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-      res(c.toDataURL("image/jpeg", 0.85));
-    };
-    img.onerror = rej; img.src = URL.createObjectURL(file);
-  });
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); res(c.toDataURL("image/jpeg", .85)); };
+    img.onerror = rej; img.src = URL.createObjectURL(file); });
 }
-function dataUrlToBlob(u){ const [h,b] = u.split(","); const bin = atob(b); const a = new Uint8Array(bin.length); for (let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return new Blob([a], {type: h.split(":")[1].split(";")[0]}); }
-function updateBegin(){ $("#begin").disabled = !(state.photo && $("#consent").checked); }
-$("#photoInput").onchange = async e => {
-  const f = e.target.files[0]; if (!f) return;
-  state.photo = await shrink(f);
-  $("#photoPreview").innerHTML = `<img src="${state.photo}" alt="Chosen photo">`; $("#photoPreview").hidden = false;
-  $("#pickText").innerHTML = "<b>Change photo</b>"; updateBegin();
-};
-$("#consent").onchange = updateBegin;
+function dataUrlToBlob(u){ const [h,b] = u.split(","); const bin = atob(b); const a = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) a[i] = bin.charCodeAt(i); return new Blob([a], {type: h.split(":")[1].split(";")[0]}); }
+function renderThumbs(){
+  $("#thumbs").innerHTML = S.photos.map((p,i) => `<figure><img src="${p}" alt="Photo ${i+1}"><button data-i="${i}" aria-label="Remove photo">×</button></figure>`).join("");
+  $("#thumbs").querySelectorAll("button").forEach(b => b.onclick = () => { S.photos.splice(+b.dataset.i, 1); renderThumbs(); });
+}
+async function addPhotos(files){ for (const f of [...files].slice(0, 6 - S.photos.length)) S.photos.push(await shrink(f)); renderThumbs(); }
+$("#photoInput").onchange = e => addPhotos(e.target.files);
+$("#filmPhotos").onchange = e => addPhotos(e.target.files);
+$("#consent").onchange = () => $("#begin").disabled = !$("#consent").checked;
 
-/* ---- interview ---- */
-const LANG_CODES = {"Hindi":"hi-IN","Bengali":"bn-IN","Tamil":"ta-IN","Telugu":"te-IN","Marathi":"mr-IN","Gujarati":"gu-IN","Punjabi":"pa-IN","Mandarin Chinese":"zh-CN","Cantonese":"zh-HK","Japanese":"ja-JP","Korean":"ko-KR","Tagalog":"fil-PH","Bahasa Indonesia":"id-ID","Thai":"th-TH","Vietnamese":"vi-VN","English":"en-IN"};
-function speak(text, language){
-  try { if (!("speechSynthesis" in window) || !text) return; speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text); const code = LANG_CODES[language]; if (code) u.lang = code; u.rate = .92; speechSynthesis.speak(u); } catch(e) {}
-}
-function addMsg(kind, original, english){
+/* ---------- 2 research & interview ---------- */
+const LANG_CODES = {"Hindi":"hi-IN","Bengali":"bn-IN","Tamil":"ta-IN","Telugu":"te-IN","Marathi":"mr-IN","Gujarati":"gu-IN","Punjabi":"pa-IN","Urdu":"ur-IN","Mandarin Chinese":"zh-CN","Cantonese":"zh-HK","Japanese":"ja-JP","Korean":"ko-KR","Tagalog":"fil-PH","Bahasa Indonesia":"id-ID","Thai":"th-TH","Vietnamese":"vi-VN","English":"en-IN"};
+function speak(text, lang){ try { if (!("speechSynthesis" in window) || !text) return; speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); if (LANG_CODES[lang]) u.lang = LANG_CODES[lang]; u.rate = .92; speechSynthesis.speak(u); } catch(e) {} }
+const teller = () => $("#teller").value.trim() || "Nani";
+function addMsg(kind, o, e){
   const d = document.createElement("div"); d.className = "msg " + kind;
-  d.innerHTML = `<div class="who">${kind === "ai" ? "Lantern" : esc($("#teller").value || "Teller")}</div><div class="o"></div>${english ? '<div class="e"></div>' : ""}`;
-  d.querySelector(".o").textContent = original; if (english) d.querySelector(".e").textContent = english;
+  d.innerHTML = `<div class="who">${kind === "ai" ? "Lantern" : esc(teller())}</div><div class="o">${esc(o)}</div>${e && e !== o ? `<div class="e">${esc(e)}</div>` : ""}`;
   $("#chat").appendChild(d); d.scrollIntoView({block:"nearest", behavior:"smooth"});
 }
-function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
-let pendingQ = null, detectedLang = "auto";
-
-async function sendTurn({audio=null, typed=""} = {}){
+function addCheck(note){ const d = document.createElement("div"); d.className = "check";
+  d.textContent = "Gently checking: " + note; $("#chat").appendChild(d); }
+const READY = {timeline: "Core timeline", people_places: "People and places", history: "Historical context",
+  gaps: "Major gaps addressed", substance: "Enough for a story", uncertainty: "Uncertainty documented"};
+const srcLinks = l => (l||[]).length ? "<br>" + l.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(" · ") : "";
+function renderNotebook(){
+  $("#notebook").hidden = false;
+  $("#nbReady").innerHTML = Object.entries(READY).map(([k, v]) => `<span class="${S.readiness[k] ? "ok" : ""}">${v}</span>`).join("");
+  const m = S.memory || {};
+  $("#nbTimeline").innerHTML = (m.timeline||[]).map(t => `<li><b>${esc(t.when || "When?")}</b> ${esc(t.what)} <span class="cert">${esc(t.certainty||"")}</span></li>`).join("") || '<li class="muted">Nothing yet</li>';
+  $("#nbPeople").innerHTML = [...(m.people||[]).map(x => `<li>${esc(x.name)}${x.relation ? " · " + esc(x.relation) : ""}</li>`),
+    ...(m.places||[]).map(x => `<li>📍 ${esc(x)}</li>`), ...(m.unknown||[]).map(x => `<li class="muted">Unknown: ${esc(x)}</li>`)].join("") || '<li class="muted">Nothing yet</li>';
+  $("#nbGaps").innerHTML = [...(S.gaps||[])].sort((a,b) => (a.priority||9)-(b.priority||9)).map(g => `<li><span class="layer">${esc(g.type)}</span> ${esc(g.detail)}</li>`).join("") || '<li class="muted">No open gaps</li>';
+  $("#nbResearch").innerHTML = S.research.map(n => `<li><span class="layer">${esc(n.layer||"")}</span> ${esc(n.note)}${n.connection ? `<div class="muted small">Possible link: ${esc(n.connection)}</div>` : ""}${srcLinks(n.sources)}</li>`).join("") || '<li class="muted">Researching as they talk</li>';
+}
+let pendingQ = null;
+async function sendTurn({audio = null, typed = "", skipped = false} = {}){
   const fd = new FormData();
-  fd.append("teller", $("#teller").value || "Nani");
-  fd.append("language", $("#language").value === "auto" ? detectedLang : $("#language").value);
-  fd.append("history", JSON.stringify(state.history));
-  fd.append("photo", dataUrlToBlob(state.photo), "photo.jpg");
+  fd.append("teller", teller());
+  fd.append("language", $("#language").value === "auto" ? S.lang : $("#language").value);
+  fd.append("history", JSON.stringify(S.history));
+  fd.append("research", JSON.stringify(S.research.map(r => ({layer: r.layer, note: r.note}))));
+  fd.append("memory", JSON.stringify(S.memory || {}));
+  if (skipped) fd.append("skipped", "true");
+  if (S.photos[0]) fd.append("photo", dataUrlToBlob(S.photos[0]), "photo.jpg");
   if (audio) fd.append("audio", audio, "answer.webm");
   if (typed) fd.append("answer_text", typed);
-  const r = await api("/api/turn", {method:"POST", body: fd});
-  if (r.language) detectedLang = r.language;
+  const r = await api("/api/turn", {method: "POST", body: fd});
+  if (r.language) S.lang = r.language;
+  if (skipped) S.history.push({question_original: pendingQ?.o || "", question_english: pendingQ?.e || "", answer_original: "(skipped)", answer_english: "(skipped)"});
   if (audio || typed){
-    state.history.push({question_original: pendingQ?.o || "", question_english: pendingQ?.e || "",
+    S.history.push({question_original: pendingQ?.o || "", question_english: pendingQ?.e || "",
       answer_original: r.transcript_original || typed, answer_english: r.transcript_english || ""});
     addMsg("me", r.transcript_original || typed, r.transcript_english);
   }
+  for (const n of (r.research || [])) if (n.note && !S.research.some(x => x.note === n.note)) S.research.push(n);
+  if (r.memory && Object.keys(r.memory).length) S.memory = r.memory;
+  S.gaps = r.gaps || S.gaps; S.readiness = r.readiness || S.readiness;
+  renderNotebook();
+  if (r.check && r.check.needed && r.check.note) addCheck(r.check.note);
   pendingQ = {o: r.question_original, e: r.question_english};
-  addMsg("ai", r.question_original, r.question_english !== r.question_original ? r.question_english : "");
+  addMsg("ai", r.question_original, r.question_english);
+  if (r.question_reason){ const d = document.createElement("div"); d.className = "reason"; d.textContent = "Why this question: " + r.question_reason; $("#chat").appendChild(d); }
+  $("#closing").hidden = !r.ready_to_close; $("#skipQ").disabled = false;
   speak(r.question_original, $("#language").value === "auto" ? r.language : $("#language").value);
-  $("#turnCount").textContent = state.history.length + (state.history.length === 1 ? " answer" : " answers");
-  $("#finish").disabled = state.history.length < 1;
+  $("#turnCount").textContent = S.history.length + (S.history.length === 1 ? " answer" : " answers");
+  $("#toReview").disabled = S.history.filter(h => h.answer_original !== "(skipped)").length < 1;
 }
-
+$("#skipQ").onclick = async () => { $("#skipQ").disabled = true; err(2);
+  addMsg("me", "(Skipped)", ""); try { await sendTurn({skipped: true}); } catch(e){ err(2, e.message); $("#skipQ").disabled = false; } };
+$("#closeReview").onclick = () => $("#toReview").click();
+$("#keepGoing").onclick = () => $("#closing").hidden = true;
+const EXAMPLE = "My grandmother said her family left Guangzhou during the war and moved to a village. They didn't have much food, but she remembered her mother always finding ways to feed everyone.";
+let exampleMode = false, demoMode = false, demoPaused = false;
+const PARTITION_OPENING = "When I was ten, we left Lahore on a train. My mother sewed her gold bangles into my frock, and my father locked our house and kept the big key. He said we would be back in a few weeks. We left in early August, before the border line was announced.";
+async function demoLoop(){
+  let cycle = 1;
+  while (demoMode && cycle <= 10){
+    $("#demoCycle").textContent = `Demo · cycle ${cycle} · readiness ${Object.values(S.readiness||{}).filter(Boolean).length}/6`;
+    if ($("#closing").hidden === false){ $("#demoCycle").textContent = `Story ready after ${cycle - 1} cycles · readiness ${Object.values(S.readiness).filter(Boolean).length}/6`; $("#demoPause").hidden = true; return; }
+    while (demoPaused) await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 1800));
+    $("#recStatus").textContent = "Dadi is answering…";
+    const {answer} = await api("/api/demo-answer", {json: {history: S.history, question: pendingQ?.e || pendingQ?.o || ""}});
+    $("#recStatus").textContent = "Integrating her answer, researching, checking readiness…";
+    await sendTurn({typed: answer}); cycle++;
+  }
+  $("#recStatus").textContent = "";
+}
+$("#demoPause").onclick = () => { demoPaused = !demoPaused; $("#demoPause").textContent = demoPaused ? "Resume" : "Pause"; };
+$("#demoPartition").onclick = () => { demoMode = true; $("#teller").value = "Dadi (fictional)"; $("#language").value = "English";
+  $("#consent").checked = true; $("#begin").disabled = false; $("#begin").click(); };
+$("#example").onclick = () => { exampleMode = true; $("#teller").value = "Ah Ma's granddaughter"; $("#language").value = "English";
+  $("#consent").checked = true; $("#begin").disabled = false; $("#begin").click(); };
 $("#begin").onclick = async () => {
-  $("#begin").disabled = true; err($("#startErr"), "");
-  $("#ivTitle").textContent = "Talking with " + ($("#teller").value || "Nani");
-  try { show("v-interview"); $("#recStatus").textContent = "Lantern is looking at the photo…"; await sendTurn();
-    $("#recStatus").textContent = "Tap Record, hand over the phone, tap again when they finish."; }
-  catch(e){ show("v-start"); err($("#startErr"), e.message); $("#begin").disabled = false; }
+  S.id = "s" + Date.now(); err(1);
+  $("#ivTitle").textContent = "Talking with " + teller(); show(2);
+  $("#recStatus").textContent = exampleMode ? "Reading the example memory and researching it…" : (S.photos.length ? "Lantern is looking at the photo…" : "Lantern is getting ready…");
+  try {
+    if (demoMode){ $("#demoBar").hidden = false; pendingQ = {o: "What memory would you like to share?", e: ""}; addMsg("ai", pendingQ.o, "");
+      $("#recStatus").textContent = "Dadi shares her first memory. Lantern is researching Lahore and Partition…";
+      await sendTurn({typed: PARTITION_OPENING}); demoLoop().catch(e => err(2, e.message)); return; }
+    if (exampleMode){ pendingQ = {o: "What memory would you like to share?", e: ""}; addMsg("ai", pendingQ.o, ""); await sendTurn({typed: EXAMPLE}); }
+    else await sendTurn();
+    $("#recStatus").textContent = "Tap Record, let them talk, tap Stop when they finish.";
+  } catch(e){ show(1); err(1, e.message); }
 };
-
 let rec = null, chunks = [];
 $("#rec").onclick = async () => {
-  err($("#ivErr"), "");
+  err(2);
   if (rec && rec.state === "recording"){ rec.stop(); return; }
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
     chunks = []; rec = new MediaRecorder(stream);
     rec.ondataavailable = e => e.data.size && chunks.push(e.data);
     rec.onstop = async () => {
       stream.getTracks().forEach(t => t.stop());
       $("#rec").classList.remove("on"); $("#rec").textContent = "Record"; $("#rec").disabled = true;
-      const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"}); state.clips.push(blob);
-      $("#recStatus").textContent = "Listening back and thinking of the next question…";
+      const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"}); S.clips.push(blob);
+      $("#recStatus").textContent = "Listening back, researching, and thinking of the next question…";
       try { await sendTurn({audio: blob}); $("#recStatus").textContent = "Tap Record for the next answer."; }
-      catch(e){ err($("#ivErr"), e.message); state.clips.pop(); $("#recStatus").textContent = ""; }
+      catch(e){ err(2, e.message); S.clips.pop(); $("#recStatus").textContent = ""; }
       $("#rec").disabled = false;
     };
     rec.start(); $("#rec").classList.add("on"); $("#rec").textContent = "Stop"; $("#recStatus").textContent = "Recording… tap Stop when they finish.";
-  } catch(e){ err($("#ivErr"), "The microphone isn't available. Allow microphone access, or type the answer below."); }
+  } catch(e){ err(2, "The microphone isn't available. Allow microphone access, or type the answer below."); }
 };
 $("#sendTyped").onclick = async () => {
   const t = $("#typed").value.trim(); if (!t) return; $("#sendTyped").disabled = true;
-  try { await sendTurn({typed: t}); $("#typed").value = ""; } catch(e){ err($("#ivErr"), e.message); }
+  try { await sendTurn({typed: t}); $("#typed").value = ""; } catch(e){ err(2, e.message); }
   $("#sendTyped").disabled = false;
 };
 
-/* ---- making ---- */
-function step(i, cls){ $("#steps").children[i].className = cls; }
-$("#finish").onclick = async () => {
-  show("v-making"); err($("#mkErr"), ""); [...$("#steps").children].forEach(li => li.className = "");
+/* ---------- 3 reconstruct & review ---------- */
+const KIND = {memory: "Memory", fact: "Fact", uncertain: "Uncertain"};
+function segCard(seg){
+  const d = document.createElement("div"); d.className = "seg " + (seg.kind || "memory");
+  d.innerHTML = `<div class="row" style="justify-content:space-between"><span><span class="badge">${KIND[seg.kind] || "Memory"}</span>${seg.kind === "memory" && seg.origin === "secondhand" ? ' <span class="cert">heard from relatives</span>' : (seg.kind === "memory" && seg.origin === "firsthand" ? ' <span class="cert">lived it</span>' : "")}</span>
+      <button class="btn ghost sm" data-del>Remove</button></div>
+    <textarea data-f="original" aria-label="Original words">${esc(seg.original)}</textarea>
+    <textarea data-f="english" aria-label="English">${esc(seg.english)}</textarea>
+    ${(seg.sources||[]).length ? `<div class="src small">Sources: ${seg.sources.map(s => `<a href="${esc(s.uri)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join(" · ")}</div>` : ""}`;
+  d._seg = seg;
+  d.querySelector("[data-del]").onclick = () => d.remove();
+  return d;
+}
+function renderSegments(story){
+  $("#storyTitle").value = story.title || "Our story";
+  $("#segments").innerHTML = "";
+  (story.segments || []).forEach(s => $("#segments").appendChild(segCard(s)));
+}
+$("#toReview").onclick = async () => {
+  $("#toReview").disabled = true; err(2);
   try {
-    step(0,"on");
-    const story = await api("/api/story", {method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({teller: $("#teller").value || "Nani", history: state.history, photo: state.photo})});
-    state.story = story; step(0,"done"); step(1,"done");
-    step(2,"on");
-    try { state.cover = (await api("/api/restore", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({photo: state.photo})})).image; step(2,"done"); }
-    catch(e){ state.cover = state.photo; step(2,"fail"); }
-    step(3,"on"); state.pages = [];
-    for (const sc of (story.scenes || []).slice(0,3)){
-      try { const r = await api("/api/illustrate", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({prompt: sc.prompt, photo: state.photo})});
-        state.pages.push({img: r.image, caption: sc.caption}); } catch(e){ err($("#mkErr"), "One picture could not be drawn: " + e.message); }
+    S.story = await api("/api/reconstruct", {json: {teller: teller(), language: S.lang, history: S.history, research: S.research, memory: S.memory}});
+    renderSegments(S.story); show(3);
+  } catch(e){ err(2, e.message); }
+  $("#toReview").disabled = false;
+};
+$("#addSeg").onclick = () => $("#segments").appendChild(segCard({kind: "memory", original: "", english: ""}));
+$("#approve").onclick = () => {
+  const segs = [...$("#segments").children].map(d => ({ ...d._seg,
+    original: d.querySelector('[data-f="original"]').value.trim(), english: d.querySelector('[data-f="english"]').value.trim() }))
+    .filter(s => s.original || s.english);
+  if (!segs.length){ err(3, "Keep at least one line of the story."); return; }
+  err(3);
+  S.approved = { ...S.story, title: $("#storyTitle").value.trim() || "Our story", segments: segs, teller: teller(), approvedAt: new Date().toISOString() };
+  resetOutputs(); show(4);
+};
+
+/* ---------- 4 create ---------- */
+function resetOutputs(){ S.book = null; S.film = null; $("#bookOut").hidden = true; $("#filmOut").hidden = true;
+  $("#outTabs").hidden = true; $("#keepRow").hidden = true; $("#prog").hidden = true; }
+function progress(items){ const ul = $("#prog"); ul.hidden = false; ul.innerHTML = items.map(t => `<li>${esc(t)}</li>`).join(""); return i => ul.children[i]; }
+const busy = on => { $("#makeBook").disabled = on; $("#makeFilm").disabled = on; };
+
+$("#makeBook").onclick = async () => {
+  busy(true); err(4);
+  const p = progress(["Planning the pictures", "Restoring the photo", "Drawing three illustrations"]);
+  try {
+    p(0).className = "on";
+    const plan = await api("/api/plan", {json: {format: "storybook", story: S.approved}}); p(0).className = "done";
+    let cover = null;
+    if (S.photos.length){ p(1).className = "on";
+      try { cover = (await api("/api/restore", {json: {photos: [S.photos[0]]}})).image; p(1).className = "done"; } catch(e){ cover = S.photos[0]; p(1).className = "fail"; } }
+    else p(1).className = "done";
+    p(2).className = "on"; const pages = [];
+    for (const sc of (plan.scenes || []).slice(0, 3)){
+      try { pages.push({img: (await api("/api/illustrate", {json: {prompt: sc.prompt, photos: S.photos.slice(0, 3)}})).image, caption: sc.caption}); }
+      catch(e){ err(4, "One picture couldn't be drawn: " + e.message); }
     }
-    step(3, state.pages.length ? "done" : "fail");
-    renderStory(); show("v-story");
-  } catch(e){ err($("#mkErr"), e.message + " — your interview is kept; go back with Story and try again."); }
+    p(2).className = pages.length ? "done" : "fail";
+    S.book = {cover, pages}; renderBook(); outTab("book");
+  } catch(e){ err(4, e.message); }
+  busy(false);
 };
 
-/* ---- story ---- */
-function renderStory(){
-  const s = state.story;
-  $("#cover").innerHTML = `<img src="${state.cover || state.photo}" alt="Restored family photo">`;
-  $("#sTitle").textContent = s.title || "Our story";
-  $("#sMeta").textContent = `Told by ${$("#teller").value || "Nani"}${s.language ? " · in " + s.language : ""} · ${state.history.length} answers`;
-  $("#sChips").innerHTML = [...(s.people||[]), ...(s.places||[]), ...(s.years||[]), ...(s.objects||[])].map(x => `<span class="chip">${esc(x)}</span>`).join("");
-  renderWords();
-  $("#sPages").innerHTML = state.pages.map(p => `<figure class="page"><img src="${p.img}" alt="${esc(p.caption)}"><figcaption>${esc(p.caption)}</figcaption></figure>`).join("") || '<p class="muted">No pictures this time.</p>';
-  $("#sFacts").innerHTML = (s.era?.facts || []).map(f => `<li>${esc(f)}</li>`).join("") || "<li>No context found.</li>";
-  $("#sSources").innerHTML = (s.era?.sources || []).length ? "Sources: " + s.era.sources.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(" · ") : "";
-  $("#playVoice").hidden = !state.clips.length;
+function bookHTML(book, story){
+  const segs = story.segments || []; const pages = book.pages || []; let pi = 0;
+  const every = Math.max(1, Math.ceil(segs.length / (pages.length + 1)));
+  let html = `${book.cover ? `<div class="cover"><img src="${book.cover}" alt="Restored family photo"></div>` : ""}
+    <div><h2 style="font-size:26px">${esc(story.title)}</h2><div class="muted small">Told by ${esc(story.teller)}${story.language ? " · in " + esc(story.language) : ""}</div></div>`;
+  segs.forEach((s, i) => {
+    if (s.kind === "fact") html += `<div class="factbox"><b>The world then.</b> ${esc(s.english || s.original)}${(s.sources||[]).length ? `<div class="src">${s.sources.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(" · ")}</div>` : ""}</div>`;
+    else if (s.kind === "uncertain") html += `<div class="uncbox"><b>Not sure yet.</b> ${esc(s.english || s.original)}</div>`;
+    else html += `<div class="mem"><div class="o">${esc(s.original)}</div>${s.english && s.english !== s.original ? `<div class="e">${esc(s.english)}</div>` : ""}</div>`;
+    if ((i + 1) % every === 0 && pi < pages.length){ const pg = pages[pi++]; html += `<figure><img src="${pg.img}" alt="${esc(pg.caption)}"><figcaption>${esc(pg.caption)}</figcaption></figure>`; }
+  });
+  while (pi < pages.length){ const pg = pages[pi++]; html += `<figure><img src="${pg.img}" alt="${esc(pg.caption)}"><figcaption>${esc(pg.caption)}</figcaption></figure>`; }
+  return html;
 }
-function renderWords(){
-  $("#sWords").innerHTML = (state.story.paragraphs || []).map(p =>
-    `<div>${lang !== "e" ? `<div class="o">${esc(p.original)}</div>` : ""}${lang !== "o" && p.english && p.english !== p.original ? `<div class="e">${esc(p.english)}</div>` : ""}</div>`).join("");
+function renderBook(){
+  $("#bookOut").innerHTML = bookHTML(S.book, S.approved) +
+    (S.clips.length ? `<button class="btn ghost" id="hear">▶ Hear ${esc(S.approved.teller)} tell it</button>` : "");
+  const h = $("#hear"); if (h) h.onclick = () => playAll(S.clips, h);
 }
-document.querySelectorAll(".seg button").forEach(b => b.onclick = () => { lang = b.dataset.l;
-  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); renderWords(); });
-
 let player = null;
-$("#playVoice").onclick = () => {
-  if (player){ player.pause(); player = null; $("#playVoice").textContent = "▶ Hear their voice"; return; }
-  let i = 0; $("#playVoice").textContent = "■ Stop";
-  const next = () => { if (i >= state.clips.length){ player = null; $("#playVoice").textContent = "▶ Hear their voice"; return; }
-    player = new Audio(URL.createObjectURL(state.clips[i++])); player.onended = next; player.play(); };
+function playAll(clips, btn){
+  if (player){ player.pause(); player = null; btn.textContent = "▶ Hear it in their voice"; return; }
+  let i = 0; btn.textContent = "■ Stop";
+  const next = () => { if (i >= clips.length){ player = null; btn.textContent = "▶ Hear it in their voice"; return; }
+    player = new Audio(URL.createObjectURL(clips[i++])); player.onended = next; player.play(); };
   next();
-};
+}
 
-$("#animate").onclick = async () => {
-  if (!state.pages.length){ $("#clipStatus").textContent = "Draw a picture page first."; return; }
-  $("#animate").disabled = true; $("#clipStatus").textContent = "Starting the clip. This takes about a minute…";
+$("#makeFilm").onclick = async () => {
+  const n = +$("#shots").value; busy(true); err(4);
+  const p = progress(["Writing the storyboard", "Painting the opening frame", ...Array.from({length: n}, (_, i) => `Clip ${i+1} of ${n} (about a minute each)`), "Joining the clips into one film"]);
   try {
-    const {id} = await api("/api/animate", {method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({image: state.pages[0].img, prompt: "Gentle camera push-in over this scene: " + state.pages[0].caption})});
-    const poll = async () => {
-      const r = await api("/api/animate/" + id);
-      if (!r.done){ $("#clipStatus").textContent = `Animating… ${r.seconds}s`; return setTimeout(poll, 6000); }
-      if (r.error){ $("#clipStatus").textContent = "The clip didn't work: " + r.error; $("#animate").disabled = false; return; }
-      $("#clipStatus").textContent = ""; const v = document.createElement("video"); v.src = r.video; v.controls = true; v.playsInline = true; v.loop = true;
-      $("#clipBox").appendChild(v); $("#animate").hidden = true;
-    };
-    poll();
-  } catch(e){ $("#clipStatus").textContent = e.message; $("#animate").disabled = false; }
+    p(0).className = "on";
+    const plan = await api("/api/plan", {json: {format: "film", story: S.approved, shots: n}}); p(0).className = "done";
+    p(1).className = "on";
+    let frame = (await api("/api/illustrate", {json: {prompt: plan.opening_frame, photos: S.photos.slice(0, 3), wide: true}})).image;
+    p(1).className = "done";
+    const shots = (plan.shots || []).slice(0, n), clipIds = [], reel = [];
+    $("#filmOut").hidden = false; $("#outTabs").hidden = false;
+    for (let i = 0; i < shots.length; i++){
+      const li = p(2 + i); li.className = "on";
+      const {id} = await api("/api/clip", {json: {image: frame, prompt: shots[i].motion || shots[i].caption}});
+      let r;
+      do { await new Promise(res => setTimeout(res, 7000)); r = await api("/api/clip/" + id);
+           if (!r.done) li.textContent = `Clip ${i+1} of ${shots.length} · ${r.seconds}s`; } while (!r.done);
+      if (r.error){ li.className = "fail"; throw new Error(`Clip ${i+1}: ${r.error}`); }
+      li.className = "done"; li.textContent = `Clip ${i+1}: ${shots[i].caption}`;
+      clipIds.push(id); reel.push({url: r.url, caption: shots[i].caption}); frame = r.last_frame;
+      renderReel(reel);
+    }
+    const last = p(2 + shots.length); last.className = "on";
+    const f = await api("/api/film", {json: {clips: clipIds}}); last.className = "done";
+    const blob = await (await fetch(f.url)).blob();
+    S.film = {title: plan.title || S.approved.title, blob, reel: reel.map(r => r.caption)};
+    renderFilm(); outTab("film");
+  } catch(e){ err(4, e.message); }
+  busy(false);
 };
+function renderReel(reel){
+  $("#filmOut").innerHTML = `<div class="eyebrow">Clips so far</div><div class="reel">${reel.map((r,i) => `<figure><video src="${r.url}" muted playsinline loop autoplay></video><figcaption>${i+1}. ${esc(r.caption)}</figcaption></figure>`).join("")}</div>`;
+}
+function renderFilm(){
+  const url = URL.createObjectURL(S.film.blob);
+  $("#filmOut").innerHTML = `<h3 style="font-size:20px">${esc(S.film.title)}</h3><video class="film" src="${url}" controls playsinline></video>
+    <ol class="small muted" style="margin:0;padding-left:20px">${S.film.reel.map(c => `<li>${esc(c)}</li>`).join("")}</ol>
+    <a class="btn ghost sm" href="${url}" download="${esc(S.approved.title)}.mp4" style="align-self:flex-start;text-decoration:none">Download film</a>`;
+}
+function outTab(which){
+  $("#outTabs").hidden = !(S.book || S.film);
+  $("#tabBook").setAttribute("aria-pressed", String(which === "book")); $("#tabFilm").setAttribute("aria-pressed", String(which === "film"));
+  $("#bookOut").hidden = which !== "book" || !S.book; $("#filmOut").hidden = which !== "film" || !S.film;
+  $("#keepRow").hidden = !(S.book || S.film); $("#prog").hidden = true;
+}
+$("#tabBook").onclick = () => S.book ? outTab("book") : $("#makeBook").click();
+$("#tabFilm").onclick = () => S.film ? outTab("film") : null;
 
-/* ---- questions & remember ---- */
-function getQs(){ try { return JSON.parse(localStorage.getItem("lantern-qs") || "[]"); } catch(e){ return []; } }
-function renderQuestions(){ const q = getQs(); $("#qList").innerHTML = q.length ? q.map(x => `<li>${esc(x)}</li>`).join("") : '<li class="muted">None yet. Add one from a story page.</li>'; }
-$("#askForm").onsubmit = e => { e.preventDefault(); const v = $("#askInput").value.trim(); if (!v) return;
-  const q = getQs(); q.unshift(v); try { localStorage.setItem("lantern-qs", JSON.stringify(q.slice(0,20))); } catch(err) {}
-  $("#askInput").value = ""; $("#askSaved").hidden = false; };
-document.querySelectorAll(".switch").forEach(s => s.onclick = () => s.setAttribute("aria-checked", String(s.getAttribute("aria-checked") !== "true")));
-$("#newStory").onclick = () => { if (!confirmReset()) return; location.reload(); };
-function confirmReset(){ return true; }
+/* ---------- 5 preserve & share (IndexedDB on this device) ---------- */
+function db(){ return new Promise((res, rej) => { const r = indexedDB.open("lantern", 1);
+  r.onupgradeneeded = () => r.result.createObjectStore("stories", {keyPath: "id"});
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function dbPut(v){ const d = await db(); return new Promise((res, rej) => { const t = d.transaction("stories", "readwrite"); t.objectStore("stories").put(v); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+async function dbAll(){ const d = await db(); return new Promise((res, rej) => { const q = d.transaction("stories").objectStore("stories").getAll(); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
+$("#keep").onclick = async () => {
+  try {
+    await dbPut({ id: S.id, savedAt: new Date().toISOString(), teller: teller(), story: S.approved, history: S.history,
+      research: S.research, memory: S.memory, photos: S.photos, recordings: S.clips, book: S.book, film: S.film });
+    $("#keep").textContent = "Saved ✓"; setTimeout(() => { $("#keep").textContent = "Save to family collection"; openCollection(); }, 700);
+  } catch(e){ err(4, "Couldn't save on this device: " + e.message); }
+};
+function narrativeText(st){
+  return `${st.title}\nTold by ${st.teller}\n\n` + (st.segments || []).map(s =>
+    `[${KIND[s.kind] || "Memory"}] ${s.original}${s.english && s.english !== s.original ? "\n    " + s.english : ""}${(s.sources||[]).length ? "\n    Sources: " + s.sources.map(x => x.uri).join(", ") : ""}`).join("\n\n");
+}
+function bookFile(it){
+  const css = document.querySelector("style").textContent;
+  return new Blob([`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(it.story.title)}</title><style>${css}</style><body><div class="app"><div class="book">${bookHTML(it.book, it.story)}</div></div></body>`], {type: "text/html"});
+}
+const dl = (blob, name, label) => `<a class="btn ghost sm" style="text-decoration:none" href="${URL.createObjectURL(blob)}" download="${esc(name)}">${label}</a>`;
+async function openCollection(){
+  show(5); $("#detail").hidden = true;
+  let items = []; try { items = await dbAll(); } catch(e) {}
+  items.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+  $("#collection").innerHTML = items.length ? "" : '<p class="muted">Nothing saved yet. Finish a story and tap "Save to family collection".</p>';
+  items.forEach(it => { const d = document.createElement("button"); d.className = "item"; d.style.cssText = "background:var(--surface);text-align:left;width:100%";
+    const thumb = it.book?.cover || it.photos?.[0] || it.book?.pages?.[0]?.img || "";
+    d.innerHTML = `${thumb ? `<img src="${thumb}" alt="">` : '<img alt="">'}<div><b>${esc(it.story.title)}</b><span class="muted small">${esc(it.teller)} · ${new Date(it.savedAt).toLocaleDateString()} · ${[it.book && "storybook", it.film && "film"].filter(Boolean).join(" + ")}</span></div>`;
+    d.onclick = () => openItem(it); $("#collection").appendChild(d); });
+}
+function openItem(it){
+  const det = $("#detail"); det.hidden = false;
+  const safe = it.story.title.replace(/[^\w\- ]+/g, "").trim() || "story";
+  det.innerHTML = `<h3 style="font-size:20px">${esc(it.story.title)}</h3><div class="row">
+      ${dl(new Blob([narrativeText(it.story)], {type: "text/plain"}), safe + ".txt", "Narrative")}
+      ${it.book ? dl(bookFile(it), safe + " storybook.html", "Storybook") : ""}
+      ${it.film ? dl(it.film.blob, safe + ".mp4", "Film") : ""}
+      ${(it.recordings || []).map((r, i) => dl(r, `${safe} recording ${i+1}.webm`, `Recording ${i+1}`)).join("")}
+      <button class="btn sm" id="share">Share</button></div>
+    ${it.film ? `<video class="film" src="${URL.createObjectURL(it.film.blob)}" controls playsinline></video>` : ""}
+    ${it.book ? `<div class="book">${bookHTML(it.book, it.story)}</div>` : ""}
+    <button class="btn ghost sm" id="makeOther" style="align-self:flex-start">${it.film && it.book ? "Open in Create" : "Make the " + (it.book ? "film" : "storybook") + " from this story"}</button>`;
+  $("#share").onclick = async () => {
+    const text = narrativeText(it.story);
+    try { if (navigator.share){ const files = it.film ? [new File([it.film.blob], safe + ".mp4", {type: "video/mp4"})] : [];
+        await navigator.share(files.length && navigator.canShare?.({files}) ? {title: it.story.title, text, files} : {title: it.story.title, text}); }
+      else { await navigator.clipboard.writeText(text); $("#share").textContent = "Copied"; } } catch(e) {}
+  };
+  $("#makeOther").onclick = () => { Object.assign(S, {id: it.id, photos: it.photos || [], history: it.history || [], research: it.research || [], memory: it.memory || {},
+      clips: it.recordings || [], approved: it.story, book: it.book, film: it.film}); $("#teller").value = it.teller;
+    show(4); if (S.book) renderBook(); if (S.film) renderFilm(); outTab(S.book ? "book" : "film"); };
+  det.scrollIntoView({behavior: "smooth"});
+}
+$("#openCollection").onclick = openCollection;
+$("#startNew").onclick = () => location.reload();
+show(1);
 </script>
 </body>
 </html>

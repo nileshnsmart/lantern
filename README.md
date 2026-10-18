@@ -6,26 +6,28 @@ Built for the Google Cloud AI Builder Cup 2026, theme **Media, Content & Digital
 
 ## How it works
 
-1. **Capture.** Photograph an old photo or heirloom. Lantern looks at it and asks the first question in the grandparent's language. They answer by voice (or the family types the answer). Each answer is transcribed, translated, and followed by one warm follow-up question.
-2. **Enrich.** Lantern pulls out the people, places, years and objects that were mentioned, then uses Grounding with Google Search to add three cited facts about that place and time, kept separate from the teller's words.
-3. **Render.** A chapter in the teller's own words (cleaned, never invented) beside an English translation, a restored cover photo, three illustrated picture pages, and an optional 8-second clip of the setting.
-4. **Resurface.** The family chooses days for the story to return: birthdays, festivals of remembrance (Pitru Paksha, Qingming, Obon, Chuseok, Undas), gatherings.
+1. **Capture a memory.** The storyteller talks in their own language. An old photo or meaningful object is optional and helps memories come back. Every answer is transcribed in the original script and translated.
+2. **Research & interview loop.** After each answer Lantern updates a structured memory (people, places, a timeline with certainty, known and unknown), researches three layers of history with Google Search (macro events, local history, everyday life), finds gaps (timeline, context, experience, relationship, inconsistency), and asks one neutral, non-leading question with a tracked reason. Conflicts with the historical record become gentle clarifying questions, never corrections. A six-point **Story Readiness Check** decides when to propose closing; the storyteller can skip any question or stop at any time.
+3. **Reconstruct & review.** The interview becomes a narrative split into personal memories (marked lived or heard from relatives), verified facts with sources, and uncertain details. The family edits and approves it before anything is generated.
+4. **Choose an output.** *Storybook*: original words with translation, restored photo, illustrations, and history with citations. *Short film*: a storyboard of 8-second Veo clips where the last frame of each clip starts the next, joined into one film. Both use the same approved story, so the other format can be made later without repeating the interview.
+5. **Preserve & share.** Original recordings, the approved narrative, and the storybook or film are saved to the family collection and can be downloaded or shared.
 
-**Principles:** restore and retell, never impersonate. No invented words, no cloned voice, no animated real faces.
+**Principles:** restore and retell, never impersonate. Unknowns stay unknown, no invented words, no cloned voice, no animated real faces.
 
 ## Google Cloud stack
 
 | Step | Service / model |
 | --- | --- |
-| Interview turns, transcription, translation | Gemini on Vertex AI: `gemini-3.8-flash` |
-| History context with citations | `gemini-3.8-flash` + Grounding with Google Search |
-| Photo restoration, picture pages | `gemini-nano-banana-2.1` |
-| Setting clip | Veo: `veo-3.1-fast-generate-001` |
+| Interview loop: transcription, translation, memory, gaps, readiness | Gemini on Vertex AI: `gemini-3.8-flash` |
+| Historical research with citations | `gemini-3.8-flash` + Grounding with Google Search |
+| Story reconstruction, storyboard | `gemini-3.8-flash` |
+| Photo restoration, illustrations, film opening frame | `gemini-nano-banana-2.1` |
+| Film clips chained by last frame | Veo: `veo-3.1-fast-generate-001`, joined with ffmpeg |
 | Hosting | Cloud Run (one service serves the web app and the API) |
 
 ## Cost guard
 
-Every paid model call is counted and capped per instance (defaults: 300 text, 40 image, 3 video calls). The service is deployed with `--max-instances 1`, so a public link can't run up a large bill. Current usage: `GET /api/usage`.
+Every paid model call is counted and capped per instance (defaults: 300 text, 40 image, 8 video calls). The service is deployed with `--max-instances 1`, so a public link can't run up a large bill. Current usage: `GET /api/usage`.
 
 ## Run it on Google Cloud
 
